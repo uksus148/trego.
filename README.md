@@ -1,5 +1,7 @@
 # trego.
 
+Created for the Junction 2026 hackathon; development continues beyond the event.
+
 trego. is a travel navigator. Describe the places you want to visit or plan on the map,
 build a route, and explore landmarks and photos with visible sources along the way.
 
@@ -74,9 +76,10 @@ Automated fixture acceptance does not certify live provider coverage or a public
 
 ## Shared contract and project language
 
-The API contract in [CLAUDE.md](CLAUDE.md) and the linked feature contracts define
-the implementation. Day planning, personalization and additional transport modes
-require a separate agreed design. Affected developers record shared decisions in CLAUDE.md.
+The [shared API contract](docs/API_CONTRACT.md) and linked feature contracts define
+the implementation. [CLAUDE.md](CLAUDE.md) owns shared instructions and ownership.
+Day planning, personalization and additional transport modes require a separate
+agreed design, recorded in the authoritative contract and its reviewed PR.
 
 English is the project language for repository files, code comments, documentation, commits, PRs, and reviews.
 

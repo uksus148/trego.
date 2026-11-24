@@ -1,9 +1,8 @@
 # Working on trego.
 
-trego. is a travel navigator for city walks and outdoor trips. Current routes use
-ORS `foot-hiking`. Sources, verified landmark photos, manual planning, saved-route
-editing and popular-place walks are implemented. Driving, cycling, transit,
-date-aware routing, personalization, uploads, Kafka and embeddings remain deferred.
+[README.md](README.md) owns the product description and project background.
+Current routing uses ORS foot-hiking. Driving, cycling, transit, date-aware routing,
+personalization, uploads, Kafka and embeddings remain deferred.
 
 This is the shared entry point for developers and AI assistants. Read it before
 changes. Read the linked contract or service guide only when its area is affected.
@@ -112,4 +111,4 @@ Public availability research has a [selected proposal and internal core](docs/RO
 but is not wired to chat. Activating it requires affected-owner agreement and live
 verification. Day planning, personalization, itinerary endpoints, new transport modes,
 uploads and embeddings remain deferred until their contracts and capabilities are agreed.
-Completed hackathon schedules and delivery plans are recoverable from Git history.
+Completed schedules and delivery plans are recoverable from Git history.

@@ -34,7 +34,7 @@ after the write transaction commits. No transaction spans the cache or provider 
 
 ## Configure Aiven Valkey
 
-The deployed cache is **Aiven Valkey**, part of the Aiven side challenge. Spring Data Redis
+The deployed cache is **Aiven Valkey**. Spring Data Redis
 with Lettuce is the Redis-protocol client; it does not select a different hosting provider.
 Local development uses the Valkey service in [infra/compose.yaml](../infra/compose.yaml).
 

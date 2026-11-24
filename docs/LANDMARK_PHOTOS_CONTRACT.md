@@ -166,7 +166,7 @@ Review JPEG/PNG/WebP files. Accept reviewed **CC BY and CC BY-SA versions 2.0, 2
 Preserve each file's exact designation, including any jurisdiction-specific variant,
 and matching license URL; do not collapse it into a 4.0 label or accept arbitrary
 strings because they contain “CC”. Review each selected file rather than adding
-an unbounded license parser before the deadline. Unknown/contradictory credits exclude it.
+an unbounded license parser. Unknown/contradictory credits exclude it.
 
 Treat all source text as untrusted: convert HTML to plain text, decode entities, never
 render provider HTML. Caption language is source language, not necessarily chat language.
@@ -231,7 +231,7 @@ provides a verified narrative, show the name/type/source without inventing facts
 **Target demonstration profile: real services, VITE_USE_MOCKS=false**, with curated
 demo metadata and verified automatic discovery for other supported identities. Image
 bytes still load from Wikimedia, so verify
-those exact URLs before recording/pitching. A broken image does not become a routing error.
+those exact URLs in the selected environment. A broken image does not become a routing error.
 
 Development/mock mode consumes synthetic ready/empty/problem responses from the shared
 examples file; it makes **no live coordinate-based photo search**. Synthetic images
@@ -274,6 +274,6 @@ Required checks before enabling:
 | Bratislava Castle -> St. Martin's Cathedral | Both distinct landmarks | Verify current text or manual route entry and both photo associations |
 
 Keep reviewed prompts, tested revision, routing entry mode and approved image/OSM
-identities together in the eventual demo manifest. Do not label either photo demo
-ready until those checks pass. A spectator request outside these scenarios exercises
+identities together in the verification record. Do not label either photo demo
+ready until those checks pass. An uncatalogued request exercises
 the automatic path; missing photos simply leave information-only cards.
