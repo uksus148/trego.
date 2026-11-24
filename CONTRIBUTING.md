@@ -22,6 +22,33 @@ fix(frontend): show the source link for each photo
 test(agent): cover chat requests with no matching places
 ```
 
+## GitHub Issues
+
+Write team issues in English. When opening an issue, select exactly one **type**
+and all applicable **areas** in the GitHub **Labels** menu. If the author cannot
+apply labels, a maintainer adds them during triage.
+
+| Type label | Use it for |
+|---|---|
+| `bug` | Broken behavior or work to fix it |
+| `feature` | New or improved user-facing behavior |
+| `documentation` | Changes to guides, examples, or project documentation |
+| `maintenance` | Refactoring, tests, dependency updates, or repository upkeep |
+
+| Area label | Use it for |
+|---|---|
+| `frontend` | React UI, maps, or browser behavior |
+| `backend` | Spring Boot API, database, or migrations |
+| `agent` | AI agent, chat, or route interpretation |
+| `infra` | Docker, CI, deployment, or shared infrastructure |
+
+For a repository-wide issue with no specific component, the type label is enough.
+Add context labels such as `accessibility` when useful. A broken route-loading
+flow that affects both the UI and the API is labeled `bug`, `frontend`, and
+`backend`. Use `bug` for fix requests even when the proposed fix is already known.
+
+See the [repository labels](https://github.com/uksus148/trego./labels).
+
 ## Pull requests
 
 Use the same format for the PR title and the resulting squash commit. Complete the following sections. State which checks remain outstanding.
