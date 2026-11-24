@@ -1,8 +1,6 @@
 # Baseline fixture acceptance
 
 Owner: Murat; frontend boundary review: Daniil; agent fixture review: Mukhamed.
-Implements the test/infrastructure slice of [#83](https://github.com/uksus148/trego./issues/83),
-following the review hub [#81](https://github.com/uksus148/trego./issues/81).
 
 ## Run
 
@@ -25,7 +23,8 @@ Real React/Vite, FastAPI factories/discovery/handoff/sessions, Java HTTP/JPA/Fly
 canonical PostgreSQL18/PostGIS/pgvector and Valkey run on disposable loopback ports.
 The API uses a clean Maven build; applied Flyway script names must exactly match
 this checkout's sources, so stale target files from another branch cannot leak in.
-No shared Compose volumes, Aiven services, production data or migration V4 are used.
+All migrations in the current checkout, including V4, are verified. No shared Compose
+volumes, Aiven services or production data are used.
 The runner removes only its own container IDs and process groups, including on failure.
 
 Groq20B responses are synthetic structured JSON, not model execution. Exa and
@@ -70,9 +69,11 @@ query prefix. A factory-level compatibility test exercises both cases through ac
 discovery. Named fixture targets never gain descriptive authorization; unexpected
 provider/query protocols still fail closed.
 
-The fixture workflow does not cover the pending #80 editor, #78 named-target guard,
-same-session races, public API security, live provider quotas or navigation safety.
-It preserves hiking options, current budgets, source continuity and no POST retries.
+The baseline has four browser cases; the editor profile has six. Factory compatibility
+checks exercise the current strict intent/discovery protocol. This corpus does not
+provide exhaustive coverage of model behavior, same-session races, live quotas,
+all geographic identities, public API security or navigation safety. Read the agent
+unit suites alongside it when changing identity/session logic.
 
 ## CI and evidence
 
@@ -92,23 +93,6 @@ Review `run.py` for process/DB isolation and HTTP assertions, `fixture_agent.py`
 provider boundaries, then `baseline.spec.ts` for required UI regressions.
 Shared-owner review and a reviewed integrated revision remain necessary before merge.
 
-Current integrated verification on November 15 against main `7833de8` (merged #78
-and #86) plus this PR: all HTTP/storage/cache/migration assertions passed, and all
-three Chromium cases passed in 9.8 seconds with zero expected/unexpected failures
-or skips. Six deliberate route POSTs reused one ORS fixture request; only V1–V3
-migrations were applied. The shared-corpus and outbound/protocol controls passed
-(four tests), and all 95 frontend tests, production build and lint passed. These
-results use disposable local storage and synthetic providers, not live E5 evidence.
-
-Historical verification on November 15 against main9f65a86 plus the original test-only patch:
-296 API tests (including Java/Python gate checks), 494 agent tests, the isolated
-transport-guard test and 79 frontend tests passed. Frontend production build/lint
-passed with the existing bundle-size warning. Final actual-service/browser run:
-one positive browser case, two explicitly expected #82 failures, zero unexpected
-failures/skips; all HTTP/storage/cache assertions passed. Canonical PostgreSQL18
-with both PostGIS and pgvector was used. This is fixture evidence, not live E5.
-
-
 ## Saved-route editor profile
 
 With the matching API and frontend editor, run `bash tests/integration/check.sh --editor`.
@@ -124,6 +108,6 @@ timeout on the first rebuild, then checks that declining confirmation sends no s
 POST. An explicitly confirmed rebuild saves a new route. Only the next explicit chat
 prompt starts a fresh agent session, with the original plan kept in read-only history.
 
-Combined #80/#87 verification after current-main integration: four Chromium cases
-passed in 12.8 seconds with no failures/skips; actual V4, API/storage/cache assertions
-passed. The editor case has no dependency on an AI provider or a running AI service.
+The runner applies current migrations and validates their names against the checkout.
+Record current counts and results from the generated report. Historical run counts
+belong to PR #85/#87 and do not describe a new checkout's verification.

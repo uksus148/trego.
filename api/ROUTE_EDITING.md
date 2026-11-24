@@ -43,9 +43,9 @@ Their original endpoints stay coordinate-only until a user explicitly binds an e
 Place on rebuild. Repeated visits, including an endpoint also used as a stop or equal
 start/finish identities, retain their independent roles and order.
 
-Run this branch only against an explicitly selected local/disposable database during
-review. Starting it with a cloud-targeting root .env would apply V4 there; no cloud
-migration or runtime activation was performed as part of the local tests below.
+Use an explicitly selected local/disposable database for development checks.
+Startup applies pending Flyway migrations to the effective target. Coordinate cloud
+schema changes before pointing a local API at Aiven.
 The automated test commands provision their own disposable resources and ignore root
 configuration in Spring test applications.
 

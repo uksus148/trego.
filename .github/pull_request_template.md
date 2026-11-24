@@ -6,7 +6,7 @@ Describe the task and resulting behavior.
 
 Name the first file to open and decisions that need attention.
 
-For API, database schema, or Kafka event changes, include an example and a link to agreement with the affected component owners. Update the relevant section of the root CLAUDE.md.
+For API, database schema, or Kafka event changes, include an example and a link to agreement with the affected component owners. Update the authoritative contract linked from CLAUDE.md. Update CLAUDE.md when shared instructions, ownership or scope change.
 
 ### How to test
 

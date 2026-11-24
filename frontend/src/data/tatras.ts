@@ -1,7 +1,7 @@
 import type { LatLon, NewPlace } from '../types'
 
 // Demo scenario (mock mode only): Štrbské Pleso → Skok waterfall → Popradské pleso, a July hike.
-// Rysy was dropped: ORS foot-hiking cannot match it (issue #49, code 2010); see docs/ROUTING_DIAGNOSTICS.md.
+// Rysy was dropped: ORS foot-hiking cannot match it (issue #49, code 2010); see api/ROUTES.md.
 // Coordinates follow the OSM objects the live agent selects; real data comes from the backend.
 
 export const DEMO_START: LatLon & { name: string } = { name: 'Štrbské Pleso', lat: 49.1191, lon: 20.0627 }

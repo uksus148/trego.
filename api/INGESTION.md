@@ -1,11 +1,9 @@
 # Researched place ingestion
 
-Merged PR #45 implements E1 of the [integration runbook](../docs/INTEGRATION_RUNBOOK.md)
-on the existing `POST /api/places`, following the accepted D1/D2 contract in
-[CLAUDE.md](../CLAUDE.md#accepted-sourced-place-and-route-handoff). Both affected owners
-approved the final head, including the additional validation constraints below.
-The isolated E4 backend live check passed; enabled chat and browser acceptance remain
-separate gates.
+Researched ingestion uses the existing POST /api/places and the accepted
+[D1/D2 contract](../docs/API_CONTRACT.md#accepted-sourced-place-and-route-handoff).
+The implementation is merged; verify the selected runtime separately using the
+[integration runbook](../docs/INTEGRATION_RUNBOOK.md).
 
 ## Follow a request
 
@@ -71,17 +69,8 @@ request and cache TTL. Created test rows were removed. Frontend previously passe
 Live chat remains disabled; HTTP startup/session storage is not browser acceptance.
 Use the root ignored `.env` for private configuration and follow the shared runbook.
 
-### Live E4 follow-up
+## Live verification
 
-The configured Aiven PostgreSQL connection passed authenticated certificate/hostname
-verification: PostgreSQL 18.7, PostGIS 3.6.4, vector 0.8.7. A temporary API applied V1-V3
-and passed Hibernate validation in its own isolated cloud schema. One live ORS hike
-returned 201 and a matching persisted GET. Repeating the same request after restarting
-with an empty ORS key returned another saved UUID with the identical track from Aiven
-Valkey; its TTL decreased from 86,399 to 86,388 seconds. Saved GET still worked after
-deleting only this request's cache entry. Temporary schema/cache data was removed.
-
-A separate current-main agent snapshot passed managed Aiven session storage and CORS
-with live chat disabled. See the [shared E4 evidence](../docs/INTEGRATION_RUNBOOK.md#e4-live-backend-evidence)
-and ignored `api/target/e4-live-report.json`. Claude/Exa credentials and account/model
-access remain unverified. E1 is merged; the full browser/Tatras workflow remains pending.
+Use the shared integration runbook to verify the current API, migrations and cloud
+target. Historical E4 checks are recorded in PR #45; their test counts do not establish
+the state of a newly started environment.

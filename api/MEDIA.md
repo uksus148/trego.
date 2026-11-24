@@ -55,7 +55,7 @@ an image caption cannot become an invented landmark narrative.
 - Catalog keys are OSM type/ID, not environment-specific Place UUIDs. Five actual
   source-linked records cover the three Tatras demo subjects and the two Bratislava
   subjects. Each retains original retrieval time, file ID, creator/license and review
-  evidence. Teammate review and final photo/demo acceptance are still pending.
+  evidence. Feature reviews merged in #71/#73/#74. Verify the selected environment and live assets before activation.
 - For other OSM identities, the automatic path uses a single exact Nominatim lookup,
   one Wikidata request and one batched Commons request. Missing identity/P18 gives an
   honest empty result; there is no name/proximity fallback or HTTP retry.

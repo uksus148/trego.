@@ -1,614 +1,115 @@
-# trego. — Junction 2026
+# Working on trego.
 
-A travel navigator for city sightseeing and outdoor trips. Users describe the places
-they want to visit or mark them on a map, build a route through them, and explore
-landmark information and photos with sources. Current routing uses ORS `foot-hiking`
-for walking; driving, cycling and public transport are not implemented. AI supports
-research and chat rather than defining the product category. See the
-[documentation index](docs/README.md) for current contracts and implementation guides.
+trego. is a travel navigator for city walks and outdoor trips. Current routes use
+ORS `foot-hiking`. Sources, verified landmark photos, manual planning, saved-route
+editing and popular-place walks are implemented. Driving, cycling, transit,
+date-aware routing, personalization, uploads, Kafka and embeddings remain deferred.
 
-This file is the team's single source of truth for developers and AI assistants. Update it whenever a decision is made.
+This is the shared entry point for developers and AI assistants. Read it before
+changes. Read the linked contract or service guide only when its area is affected.
+The [documentation index](docs/README.md) identifies the authoritative document for
+each topic. Historical PR discussions and tests remain evidence, not current task lists.
 
-Use the shared [integration runbook](docs/INTEGRATION_RUNBOOK.md) for the delivery ledger,
-owner coordination, environment setup, and end-to-end evidence. Keep it current in integration
-PRs; its operational proposals do not override this file's accepted contract.
+## Working rules
 
-The [baseline fixture acceptance](tests/integration/README.md) provides disposable
-actual-service integration tests without live keys. Its small shared corpus contains
-accepted baseline HTTP examples, not new fields. External providers/maps/images are
-explicit fixtures; the two browser defects fixed in #86 are mandatory passing regressions.
-The editor profile also covers manual and chat-origin editing, uncertain saves and
-fresh-session behavior. Fixture success does not establish live-provider acceptance.
-Frontend and fixture CI remain conditional and do not add required ruleset checks.
-The shared acceptance policy merged with independent owner review in #85.
+- Product spelling is **trego.**. English is required for repository files, comments,
+  commits, PR descriptions and reviews. Preserve existing Python imports and Valkey prefixes.
+- Follow Murat's current request. Propose shared changes through PRs and obtain
+  affected-owner agreement before changing a contract.
+- Use descriptive `feat/`, `fix/`, `docs/`, `infra/` or `chore/` branches.
+  The `codex/` prefix is prohibited.
+- Keep PRs focused, about 400 handwritten changed lines when practical. Generated
+  files do not count; dependency manifests and lockfiles travel together.
+- Every PR needs at least one independent approval. Request affected owners.
+  For internal work with no other affected owner, select a colleague with relevant expertise.
+- For Mukhamed's agent PRs, request both Murat and Daniil, including after reviewable
+  changes. The repository approval minimum remains one.
+- Use Approve with non-blocking comments for minor wording/style. Reserve Request
+  changes for correctness, security, build or agreed-contract/scope violations.
+  Update the review decision after a blocking finding is fixed.
+- Follow [CONTRIBUTING.md](CONTRIBUTING.md) for commit conventions and branch protection.
+- Follow the [local resource rules](infra/README.md#local-development-resource-rules)
+  for Aiven, including coordinated live E2E runs and stopping completed test stands.
+- Keep credentials and certificates private. Commit empty-secret examples. Keep
+  private assistant configuration outside the shared application contract.
 
-The [release and recovery guide](docs/RELEASE_BASELINE.md) records the third source
-checkpoint `v0.3.0`, the two earlier immutable baselines and recovery boundaries.
-A source release does not establish deployment or new live-provider acceptance.
+## Owners
 
-## Project language and branches
+| Owner | Scope |
+|---|---|
+| Murat — uksus148 | Java/Spring, SQL, migrations, Docker, shared infrastructure, repository governance and backend-facing integration |
+| Mukhamed — dyksookelwe | FastAPI, intent, Exa, place identity, models, sessions and agent-side integration |
+| Daniil — nnatthebest | React, maps, frontend state, browser integration and product presentation |
 
-- The product name is **trego.**, lowercase with the trailing period. The GitHub repository is `uksus148/trego.`.
-
-- English is the project language. Write repository files, code comments, documentation, commit messages, PR titles, descriptions, and reviews in English.
-- Use descriptive branch names such as `feat/places-bbox`, `fix/route-distance`, `docs/api-contract`, `infra/local-database`, or `chore/dependencies`.
-- The `codex/` prefix is prohibited for new branches.
-- Keep PRs small, about 400 hand-written lines; generated files such as lockfiles don't count. Split larger work into stacked PRs that each build and pass tests, and keep a dependency manifest and its lockfile in the same PR so `npm ci` works on every revision.
-- Follow [CONTRIBUTING.md](CONTRIBUTING.md) and the [repository rules](docs/REPOSITORY_RULES.md).
-- Review this file before changing the code. Follow Murat's current task and agree shared contract changes with the affected developers.
-
-## Challenges (draft submitted on November 13 at 23:59)
-
-- **Main:** The Internet Butler / Your Personal Assistant — **Exa**. Judging considers using Exa for information outside the model's training data, value for a specific group (hikers and tourists), visible sources, originality, and a demo that handles **live requests from judges**.
-- **Tech:** Best Use of **Aiven**. Meaningful use 40%, technical implementation 30%, product impact 20%, creativity 10%.
-- Optional Cloudinary submission, if photo uploads use it. Separate form at https://cld.media/hackathon-survey.
-
-## Junction requirements
-
-- Write all code during the hackathon, which starts November 13 at 19:30. The repository must be **public** and use the **MIT** license.
-- **Final submission is Sunday, November 15 at 10:00.** Change Draft to Final. Late submissions are rejected.
-- The video pitch must be **at most 2:00**, with a public YouTube or Vimeo link. Provide the pitch deck as a PDF.
-- **All three team members must attend peer review on Sunday, 10:30–13:00**, to remain eligible for the main prize.
-- The top five teams get a three-minute pitch and three minutes of questions.
-
-## Budget
-
-Use partner credits and free tiers. All times in this document are local to the event in Helsinki.
-
-| Need | Provider | Team cost |
-|---|---|---|
-| Place and photo web search | **Exa**, $50 × 3 = $150 | Partner credits |
-| Agent LLM | **Groq GPT OSS** for integration tests; **Anthropic Claude** remains an explicit alternative | Free limits / credits |
-| Embeddings | **Gemini API** | Free credits or free tier |
-| Coding assistance | Codex $100, Claude Code | Credits |
-| Database | **Aiven PostgreSQL** Free with PostGIS and pgvector | Free |
-| Cache | **Aiven Valkey** Free | Free |
-| Events, deferred | **Aiven Kafka**, only after upload/event design and budget agreement | Not provisioned by the current application |
-| Observability, stretch goal | Aiven ClickHouse if credits remain | Credits |
-| Map | MapLibre GL and OpenFreeMap tiles | Free, no key |
-| Place identity/geocoding | Nominatim/OSM; automatic Overpass import remains deferred | Free |
-| Walking routes | OpenRouteService `foot-hiking`, approximately 2,000 requests per day | Free API key |
-| Photos | Wikimedia Commons API, Mapillary, Exa. User uploads may use Cloudinary Free | Free |
-| API and agent hosting | Aiven Runtime if credits suffice, Modal $100 as a fallback | Credits |
-| Frontend hosting | Cloudflare Pages or Vercel Free | Free |
-
-Excluded providers are Oxylabs, which requires a card and subscription, paid video-generation plugins, and Verda/Featherless GPU services.
-
-Cache Exa and routing responses in Valkey. Use a query hash as the key and a 24-hour TTL. Use fixtures during development to conserve live API credits.
+Route AI-only parsing, agent internals and frontend presentation to their owners.
+Murat's assistant reviews within Murat's scope. His ignored ARCHITECTURE.local.md
+contains personal working notes and learning checkpoints only. It cannot impose
+shared rules on developers who do not have that file. Any binding architecture,
+contract or team decision belongs in a reviewed, version-controlled team document.
 
 ## Architecture
 
 ```text
-frontend (React + Vite + Tailwind + MapLibre)
+frontend/ — React, Vite, Tailwind, MapLibre
    | REST
-   +---> api (Spring Boot, Java) — places, routes, editing context, landmark media
-   +---> agent (FastAPI, Python) — chat, LLM intent, Exa, place resolution
-             | REST -> api for canonical places and saved routes
-   Aiven PostgreSQL (PostGIS; pgvector available), Aiven Valkey
+   +--> api/ — Spring Boot, Java, JPA, places/routes/media
+   +--> agent/ — FastAPI, chat, model extraction, Exa, OSM identity
+                 | REST --> api/ for canonical places and saved routes
+PostgreSQL/PostGIS — persistence; pgvector installed, ranking deferred
+Valkey — research/routing caches, sessions and shared rate gates
+infra/ — local Docker services and extension checks
 ```
 
-Uploads, Kafka events, embeddings and vector ranking remain deferred. The installed
-pgvector extension does not mean that embeddings are generated or queried.
-
-### Demo scenarios and historical routing regression
-
-Use city sightseeing walks and outdoor trips. The app's Tatras example is:
-“Plan a summer hike in July from Štrbské Pleso to Popradské pleso via the Skok waterfall.
-I love wild scenery.” Rysy is retained as the original provider-matching regression,
-not a required successful endpoint.
-
-The agent finds the requested places, builds a route through them, and displays the track,
-places, and photos with sources. A judge must also be able to enter a different request.
-Keep the region configurable, with deeper testing for the Tatras.
-
-Issue #49 live verification found that the original Rysy endpoint cannot be matched by
-the current ORS foot-hiking graph within its default 350 m radius. Retain it as a regression;
-never widen the radius or silently substitute a destination. Murat requested a demo
-correction. After routing review in #54, frontend #55 adopts **July summer planning**:
-"Plan a summer hike in July from Štrbské Pleso to Popradské pleso via the Skok waterfall.
-I love wild scenery." The diagnostic route used the same provider/options; merged demo
-text does not establish a new full E5 pass. The MVP has no date-aware
-routing engine; seasonal evidence and [routing diagnostics](docs/ROUTING_DIAGNOSTICS.md)
-are separate from the provider failure code.
-
-For the [route-availability research plan](docs/ROUTE_AVAILABILITY_RESEARCH_PLAN.md),
-Murat selected optional consent/planning dates and structured evidence on the existing
-`POST /api/chat`, rather than a separate endpoint. He requested only his Java/backend
-integration work. The [wire proposal](docs/ROUTE_AVAILABILITY_CONTRACT.md) and
-[examples](docs/contracts/route-availability.examples.json) need affected-owner review;
-the current agent still rejects the proposed new request fields. No research runtime
-or date-aware routing is enabled. Independently verified restrictions may be reported
-with sources; they are not proof of why ORS failed. This specific direction does not
-approve unrelated deferred chat/planner features.
-Mukhamed requested the [internal agent core](agent/AVAILABILITY.md) in parallel
-[PR #56](https://github.com/uksus148/trego./pull/56): explicit date clarification,
-request-scoped Exa/official-source validation and independent technical/evidence results.
-It is not wired into chat/startup; its date/evidence mapping still needs affected-owner
-review against the selected public proposal. The Java work does not include this agent code.
-Ordinary Exa place searches keep their 24-hour cache. The internal notice workflow
-uses a distinct fresh, request-scoped search; this exception and its operator-selected
-host/freshness policy are included in the agent-core review before public integration.
-
-### API contract
-
-Agree changes with the affected developers and record them here.
-
-- `POST /api/chat` `{sessionId, message}` → `{reply, places:[Place], routeId?}` (agent)
-- `GET /api/places?bbox=minLon,minLat,maxLon,maxLat&tags=castle,waterfall` → `[Place]` (api)
-- `POST /api/places` `{name, lat, lon, tags[]}` creates a manual place and returns
-  HTTP **201 Created** with the complete `Place`, a server-generated UUID,
-  server-owned `source: "manual"`, and `photos: []` until photo storage is implemented (api).
-  All four fields are required. Coordinates must be finite WGS84 values (`lat` in [-90, 90],
-  `lon` in [-180, 180]). Empty tags are allowed; names and supplied tag entries must be
-  non-null and nonblank. Strip surrounding whitespace from names/tags and remove duplicate
-  tags in first-occurrence order, preserving case. Invalid or malformed input returns
-  HTTP **400** Problem Details with an English `detail` and no inserted row. A client-supplied
-  source cannot override the manual source. The creation transaction commits before returning
-  success, and a matching subsequent bbox/tag search returns the saved place. Separate creation
-  requests create separate records; manual creation has no deduplication guarantee. These
-  manual-write details were confirmed by the frontend and agent owners in PR #33.
-  The accepted researched-write extension below merged in #45.
-- `POST /api/routes` `{start:{lat,lon}, end:{lat,lon}, placeIds[], preferences[]}` → `Route` (api)
-- `GET /api/routes/{id}` → `Route`
-- Deferred, not implemented: `POST /api/photos` multipart `{file, lat, lon}` and Kafka event `photo.uploaded`
-- `Place = {id, name, lat, lon, tags[], photos:[Photo], source}`
-- `Photo = {url, thumbUrl, author, license, sourceUrl, lat, lon}`
-- `Route = {id, geojson(LineString), distanceKm, ascentM, durationMin, places:[Place], segments:[{fromKm,toKm,photos:[Photo]}]}`
-
-### Accepted sourced place and route handoff
-
-The design in [docs/AGENT_API_HANDOFF.md](docs/AGENT_API_HANDOFF.md) was accepted
-in merged PR #34: [Murat accepted D1–D4 personally](https://github.com/uksus148/trego./pull/34#pullrequestreview-5904059886),
-and [Daniil accepted D1/D3/D4/D5 and the clarified frontend work](https://github.com/uksus148/trego./pull/34#pullrequestreview-5903913530).
-Mukhamed owns the agent implementation. Agreement is not runtime availability:
-main includes manual creation, persisted routes (#39), the required routing cache (#41),
-and the internal agent handoff (#40). E2 HTTP orchestration merged in #43 after
-both teammates approved; it is fixture-tested and disabled by default.
-E1 researched ingestion merged in #45. Verify deployed V3 and live preflight before activation. Track those gates
-and actual runtime evidence in the [integration runbook](docs/INTEGRATION_RUNBOOK.md).
-
-Merged E1 uses JPA persistence with a native conflict-safe insert and a separate
-canonical read at READ COMMITTED. Flyway V3 enforces OSM identity uniqueness. Its additional
-validation details accepted in #45 are signed-64-bit positive OSM IDs and source
-URLs without embedded credentials or invalid ports. Unknown write fields, including a
-submitted `source`, return 400 rather than being silently ignored. See the
-[ingestion implementation guide](api/INGESTION.md) for evidence and tradeoffs.
-
-- **Researched ingestion (D1/D2):** `POST /api/places` adds optional, complete
-  `provenance: {sourceUrl, osmType, osmId}`. The URL is HTTP(S), `osmType` is
-  `node|way|relation`, and `osmId` is a positive integer. Manual clients omit it.
-  Unknown fields/partial provenance produce 400. Researched `Place.source` is
-  the selected research URL; OSM identity is stored separately. New writes return
-  201 with a complete Place. Atomic uniqueness on `(osmType, osmId)` returns 200
-  with the existing Place on replay, including concurrent submissions. First
-  write wins for name, coordinates, tags and selected source; consumers use the
-  authoritative returned record. Never deduplicate by names/rounded coordinates
-  or submit research through the manual path while discarding its source.
-
-  ```json
-  {"name":"Skok waterfall","lat":49.1605,"lon":20.0458,"tags":["waterfall"],"provenance":{"sourceUrl":"https://example.org/hikes/skok","osmType":"node","osmId":100000001}}
-  ```
-
-- **Routing (D3):** persist all resolved start/stop/end findings; pass returned
-  start/end coordinates and ordered intermediate UUIDs to `POST /api/routes`.
-  Preserve repeated visits; do not automatically add endpoints as intermediate
-  stops. `placeIds: []` is a direct hike. Resolve UUIDs before ORS `foot-hiking`;
-  reject unsupported waypoint counts rather than dropping stops. Cache provider
-  responses for 24 hours by a hash of all routing inputs and persist the route
-  before returning 201 with a full Route. `Route.places` contains only ordered
-  intermediate places, including repeats. GET returns the saved Route (200), or
-  404 for a missing route. Only return a fetchable, persisted routeId. Keep WGS84,
-  `[lon,lat]` GeoJSON, km/m/min units, and actual provider geometry. Empty segments
-  and photos are allowed. Preferences remain descriptive interests, without an
-  implied routing/ranking effect. Route POST is not idempotent; no automatic POST
-  retries, including lost responses. Earlier places/routes may survive failures.
-  Java rejects unknown request fields with 400 `invalid_request`. The four baseline
-  root fields and optional `startPlaceId`/`endPlaceId` bindings accepted in #80 are
-  supported; nested endpoints contain only `lat`/`lon`. See the editor contract below.
-  Dates and research metadata belong to the proposed chat extension, never route input.
-
-  ```json
-  {"start":{"lat":49.119,"lon":20.063},"end":{"lat":49.179,"lon":20.088},"placeIds":["00000000-0000-4000-8000-000000000002"],"preferences":["wild scenery"]}
-  ```
-
-- **Errors (D4):** new write/route errors use Problem Details with required
-  `type`, `title`, `status`, English `detail`, and a stable `code`. Existing GET
-  place-search errors remain compatible. Codes/statuses are `invalid_request`
-  (400), `unknown_place` and `no_hiking_route` (422), `routing_provider_error`
-  (502), `storage_unavailable` and `cache_unavailable` (503), `routing_timeout`
-  (504), and `route_not_found` (404). Merged #54 adds 422
-  `waypoint_not_routable` for ORS 2010, distinct from 2009 `no_hiking_route`,
-  as reviewed by both affected owners. Verified routing failures produce distinct
-  normal clarifications: different waypoints for no path, or check coordinates/
-  choose another point for a failed network match. Neither proves a closure,
-  seasonal restriction or difficulty exclusion. Dependency failures remain
-  honest errors: the agent retains its `detail` envelope with 502 for dependency
-  failures/invalid responses, 503 for storage/cache, and 504 for deadlines. An
-  unknown UUID after ingestion is a dependency inconsistency. Never expose
-  credentials/provider bodies or identify errors by parsing English text.
-
-- **S2 localized replies (accepted in #65):** enabled chat classifies
-  user language before discovery using only the latest user wording and up to six
-  previous user messages. Assistant replies and web/place evidence are excluded.
-  Support English, Russian, Slovak and Finnish; unknown/unsupported language yields
-  a four-language selection question before discovery or writes. Place/link-only
-  follow-ups inherit the most recent substantive user's language. Model classification
-  remains fallible and needs live acceptance; no local word-count heuristic is used.
-  Render ready/clarification/routing outcomes from application catalogs and authoritative
-  saved data; preserve canonical start/stops/end names including repeated visits.
-  No model is called after handoff to compose the reply. Session storage and existing
-  502/503/504 semantics remain. This PR changes language support and wording, not JSON.
-
-- **Chat completion (D5):** retain `{sessionId,message}` and `{reply,places,routeId?}`.
-  Read recent history before discovery. Missing/ambiguous places or excessive
-  intent limits produce a normal 200 clarification with `places: []`, no routeId,
-  and no partial writes. Complete discovery ingests places, creates/validates the
-  saved route, records the exchange, and returns persisted Place records in
-  start/stops/end visit order, deduplicated by UUID at first occurrence for map
-  display. Route visits still retain repeats. Replies/clarifications use the
-  user's message language; UI labels stay English. Storage failure after route
-  creation returns 503 without claiming the exchange was saved. Frontend retains
-  endpoint metadata/sources alongside the fetched route, anchors markers to track
-  ends, resets stale manual endpoints, and displays sources/OSM attribution.
-  Frontend follow-ups #35–#37 are merged; live acceptance remains required.
-
-  E2 uses `AGENT_CHAT_ENABLED=false` by default. Enabled startup requires nonblank
-  selected LLM/Exa keys and a model ID; account/model access is a separate live check.
-  `AGENT_CHAT_TIMEOUT_SECONDS=180` bounds history, discovery, handoff, reply and
-  session storage. Existing 20/60/60-second API/discovery/handoff defaults remain;
-  the runbook's 30/90-second diagnostic values are proposals for owner review.
-  Both owners reviewed activation, budgets and chat behavior in #43; actual
-  latency/provider/proxy budgets still need live-preflight measurement.
-
-  Issue #58's agent follow-up validates idle Valkey connections before application
-  commands, with a 15-second idle health threshold and TCP keepalive. It allows one
-  recovery pass during connection preparation only; command/transaction retries stay
-  zero, authentication failures are not retried, and paid/API calls are not replayed.
-  Existing TLS verification, total deadlines and 503/504 behavior remain. No public
-  chat fields or database changes are introduced; team-machine idle acceptance is separate.
-
-  Mukhamed requested Groq for live integration tests. Merged #47 adds
-  `AGENT_LLM_PROVIDER=groq`, `GROQ_API_KEY`, `AGENT_GROQ_MODEL=openai/gpt-oss-20b`
-  and shared transport for all three model tasks. Anthropic remains compatible;
-  no public fields change. The root example selects Groq and a 90-second discovery
-  diagnostic budget; code defaults remain 60/60/180 seconds for discovery/handoff/chat.
-  Activation follows [the live test guide](agent/LIVE_TEST.md) after review and E4.
-  Issue #48's Groq schema fix merged in #50 (main `e2ba213`); Daniil confirmed
-  5/5 valid live resolutions and disappearance of the 502. Subsequent live testing
-  found Nominatim failures (#51), separately from ORS/Rysy (#49); E3/E5 remain open.
-  The #51 follow-up requests evidenced canonical-name/country queries, retains OSM
-  candidates and selects only a unique name/type match. Ambiguous matches may be
-  narrowed to 25 km around independently resolved route points; remaining ambiguity
-  still requires clarification. One simpler query is allowed only after an empty
-  regional search, with no retries after provider errors. Candidate caches retain
-  24-hour positive results and five-minute empty results in a new namespace.
-  Internal/public result shapes, source binding and API handoff remain unchanged.
-
-  Issues #76/#77 in PR #78 bind research/resolution to requested targets.
-  Every requested target needs identity verification, including descriptions.
-  Changed identities need independent settlement/feature proof; empty verification
-  clarifies before writes or positive cache promotion. Internal descriptiveTargets
-  (start/end/stop:1–stop:5) is advisory and cannot waive verification. Murat agreed
-  the narrow MVP policy on November 15: unbound descriptions ask for an explicit
-  place name, adding a clarification turn. Owner reviews accepted this policy and
-  #78 merged at 7833de8. Same-revision live acceptance for the still-open #76/#77
-  issues remains separate; server-bound candidate confirmation is deferred.
-  Query correction retains full sourced names. Linked settlement boundary selection
-  requires matching type/aliases/Q ID/coordinates/linked_place; both owners review.
-  The private --include-identity probe captures stage comparisons without routine
-  names/query logging. See [current evidence and review gates](agent/IDENTITY_REVIEW.md).
-
-  At Mukhamed's instruction, #84's runtime solution based on audit #81 was
-  reviewed and merged in #78 as a separate increment. A Valkey owner-token lease encloses
-  history/respond/save across workers. Contention returns 409 before provider work;
-  expiry fences stale session appends, and release cannot delete another owner.
-  Exchanges must satisfy the reader's nonblank 1–4000 character bound before writes;
-  invalid writes retain previous history and return 503 without truncation.
-  Both owners reviewed the new 409 behavior before #78 merged. #84 remains open
-  for its separate acceptance/follow-up; merge does not close that live gate. No
-  Java POST fencing/idempotency is claimed after process suspension. See the linked report.
-
-S3 adds internal discovery reasons/counts and a [read-only diagnostic procedure](agent/DISCOVERY_DIAGNOSTICS.md).
-Missing endpoints clarify before place research; provider failures remain errors.
-The existing OSM selection rules are preserved. No public fields are added.
-The #65 reply-review follow-up aligns km/hours/minutes with frontend formatting,
-uses plain visit names and localized conjunctions, and echoes an unresolved phrase
-only when it occurs in user history; otherwise it asks for an exact waypoint.
-
-The S4a cache follow-up supersedes the earlier 24-hour unresolved-resolution policy:
-new/null/unconfirmed model results use a five-minute TTL in namespace v3. Only final
-accepted geocoding/context selection promotes an exact matching result to 24 hours;
-a later rejection shortens accepted caching. Hits do not refresh TTL. Atomic payload
-comparison protects concurrent replacements; expired keys are not resurrected.
-Ignore old namespaces without flushing data. Exa and ORS retain their 24-hour caches.
-The discovery probe's explicit shared-research mode uses ordinary cache writes and
-selection feedback but no Java/route/session writes. Both owners review this policy.
-
-S4b uses [observed OSM feature/alias evidence](agent/OSM_IDENTITIES.md): request
-Nominatim extra tags and permit exact castle/cathedral/church/lake attributes in
-addition to primary types. Name matching remains required; a generic attraction
-is insufficient. Normalize leading St./Saint only for church/cathedral names.
-Recognized entity tags constrain jointly. Keep multiple identities ambiguous and
-never prefer the lake solely from the name Štrbské Pleso. Shared rate gating,
-source binding, cache lifecycle, route inputs and public shapes remain unchanged.
-Both owners review these identity-selection semantics; live model acceptance is separate.
-
-Issue #69 extends settlement matching: city/town/village/hamlet may be evidenced
-by exact addresstype or extra place labels on boundary/administrative candidates.
-Recognized labels must agree with the requested kind; generic boundaries or
-admin_level alone are insufficient. Retain name/alias, joint constraints and
-single-identity checks. Candidate cache v3 preserves addresstype; old keys are
-ignored without flushing. Unresolved normalized names use start/end/stop role
-clarification when literal user wording is unavailable. No fuzzy name guesses,
-travel modes, corridor POIs or photo capabilities are added. Both owners review.
-
-Follow-up stops (proposed, owner review pending): a latest message naming both endpoints
-is a complete request, so a stop typed only in an earlier follow-up that never became part
-of a built route is not carried over. Model-normalized names are never dropped. An explicit
-name without usable web evidence may resolve to the single exactly named OSM object within
-25 km of independently resolved route points, using a bounded Nominatim search; its recorded
-source is the OSM object URL. The lookup also follows no-candidate, name/type-mismatch and
-ambiguous results, after resolution-cache feedback; identity-guard rejections stay final.
-Road, parking and transport objects are never candidates. Distinct same-named objects merge
-only on positive identity evidence (the same Wikidata item), never on proximity or category,
-and a candidate whose own OSM address names a resolved route place is preferred over the same
-name elsewhere. Remaining distinct matches still clarify; distance is never ranked.
-Public shapes, caches for unbounded searches and the shared rate gate are unchanged.
-
-Groq additionally supports `qwen/qwen3.8-27b`, sent with reasoning disabled because its tier
-allows 1000 output tokens per minute. A Groq 429 that states a Retry-After of at most 60
-seconds is replayed up to twice inside the existing deadlines; a rejected request generated
-nothing. Other failures are still never replayed. The frontend keeps the last built route,
-labelled as previous, when chat answers with a clarification instead of clearing the map.
-
-Popular-places tour (proposed, owner review pending): when intent has no complete route,
-one extra model step decides whether the user asks for the popular sights of a city
-("I am in Helsinki, route the most popular places"). The city is resolved as usual; Exa
-research names candidate sights with sources; each is kept only with a single exact OSM
-match within 25 km of the city. Up to seven located sights (start, five stops, end) are
-ordered from westernmost to easternmost and handed off as an ordinary route; fewer than
-two ask for endpoints. When the intent lists more stops than a route allows and the user
-wrote every listed sight (no explicit start and end), those sights replace research: each
-must bind to a single exact OSM match, an unmatched one is asked about, and more than seven
-still ask to reduce them. The sightseeing order is geographic, not a shortest tour. Public
-chat/route shapes are unchanged.
-
-### API container packaging
-
-PR #46 prepares the existing Spring Boot API for container execution; public
-deployment remains a separate gate. Build with `docker build --tag trego-api:local api`.
-A pinned Maven/Java 21 stage produces the JAR, and a pinned Temurin 21 JRE runs it
-as UID/GID 10001. The runtime JAR is root-owned and readable, without write access
-for the application user. Credentials are injected at runtime and the PostgreSQL
-CA is mounted read-only; see [API container](api/CONTAINER.md). The API workflow
-verifies application tests before building the image. Hosting, registry publication
-and agent/frontend packaging still require their own delivery work.
-
-### Route implementation selected by Murat
-
-Murat selected a provider-neutral `RoutingGateway` with a separate ORS adapter and accepted
-the route-side D3/D4 semantics from PR #34. This implementation preserves ordered intermediate
-UUIDs and repeated visits, resolves every UUID before provider work, uses ORS `foot-hiking`,
-and commits a saved route before returning HTTP 201 with the full baseline `Route`.
-An empty `placeIds` builds a direct hike. This increment supports at most five intermediate
-visits, rejecting larger requests before provider work. All four baseline request fields
-are required. Preferences are retained verbatim as descriptive interests; they do not change
-the track. Route.places contains only intermediate visits, in order, with repeated visits
-preserved. Empty segments/photos are valid until the photo workflow exists.
-
-GET of a saved route returns 200 without contacting ORS; an unknown route UUID returns 404.
-Route errors use Problem Details with English detail and stable codes: 400 `invalid_request`,
-404 `route_not_found`, 422 `unknown_place` / `no_hiking_route`, 502 `routing_provider_error`,
-503 `storage_unavailable`, and 504 `routing_timeout`. Provider failures do not become
-synthetic routes or ordinary no-route results. POST has no automatic retries or idempotency
-guarantee; separate requests can create separate saved route IDs.
-
-Murat explicitly staged the required Valkey routing cache in a separate focused PR.
-[Mukhamed confirmed this rollout from the agent side](https://github.com/uksus148/trego./pull/39#pullrequestreview-5904312512):
-the reviewed routing baseline in #39 may merge first, followed immediately by the cache PR.
-The uncached baseline makes one bounded provider request per valid POST. This staged delivery
-preserves the team's 24-hour cache requirement and does not establish live agent/MVP acceptance.
-See [the route implementation and review guide](api/ROUTES.md).
-
-### Routing cache selected by Murat
-
-The follow-up to merged #39 adds an explicit `CachedRoutingGateway` backed by **Aiven Valkey**
-in deployment. Local development and tests use a disposable Valkey container. This follow-up
-restores the required 24-hour routing cache before completed-flow integration.
-Cache only validated provider tracks, not persisted route IDs. Hash the complete creation
-request, resolved ordered coordinates, provider endpoint, and versioned fixed routing options.
-Preserve visit order and repeated UUIDs. Cache hits do not refresh TTL; every successful POST
-still saves a separate route before HTTP 201. GET of a saved route needs neither ORS nor Valkey.
-
-Read, write, timeout, and corrupt-entry failures return 503 `cache_unavailable`. A failed read
-prevents provider work; a failed cache write prevents route persistence even if ORS already
-consumed quota. Do not retry ORS or silently bypass the required cache. Check referenced places
-before cache access. Concurrent first misses can still issue duplicate provider requests;
-distributed request coalescing requires a separate decision before relying on that guarantee.
-
-### Landmark information/photos — merged, opt-in
-
-The Java media implementation merged in #73; frontend cards/gallery and timestamp
-validation merged in #71/#74. The [media contract](docs/LANDMARK_PHOTOS_CONTRACT.md)
-and [implementation guide](api/MEDIA.md) define canonical OSM identity, sourced
-information, verified catalog/automatic Commons lookup, nullable image location,
-12-second lookup budget, shared Nominatim gating and 24-hour/five-minute metadata TTLs.
-Empty photos keep place information visible. Legacy Photo/Place/Route/chat shapes
-remain compatible; Route.segments is not populated by this feature.
-
-Enable explicitly with API_MEDIA_ENABLED=true. Default false remains supported.
-The frontend uses the separate GET and does not rely on uploads or new agent fields.
-Shared Nominatim URL identity was corrected in #79 with actual Java/Python peer tests.
-Synthetic service/browser coverage is available; live catalog association, regional
-coverage, provider quotas and final target deployment remain separate checks.
-
-### Route editing — accepted and merged in #80/#87
-
-Murat selected independent new route IDs, a separate editing-context GET, original
-endpoint coordinates with optional Place UUID bindings, a local draft plus explicit
-Rebuild route, and a fresh chat session after successful manual editing. Both owners'
-reviews accepted the [v1 contract](docs/ROUTE_EDITING_CONTRACT.md) and
-[shared examples](docs/contracts/route-editing.examples.json). See the
-[API implementation guide](api/ROUTE_EDITING.md) and [frontend guide](frontend/README.md).
-
-GET /api/routes/{id}/editing-context returns original endpoints/bindings, repeated
-ordered stops and descriptive preferences. Optional startPlaceId/endPlaceId extend
-POST /api/routes; four-field clients and the Route/chat response shapes stay compatible.
-V4 adds nullable endpoint bindings with no inferred backfill. Committed markers stay
-at the saved track endpoints; editing context supplies draft coordinates and metadata.
-Ambiguous saves require explicit resubmission confirmation and are never retried automatically.
-A successful rebuild creates a new UUID and rotates the local chat session, with no
-edited-route context sent to the agent. Murat and Daniil own this feature; no agent
-implementation change was needed. Current fixture CI covers six browser scenarios,
-including manual and chat-origin editing. Deploy API/V4 before enabling the real
-frontend editor with VITE_ENABLE_ROUTE_EDITOR=true; live activation is separate.
-
-### Proposed extension: personalization and day plan — not agreed yet
-
-These historical proposals remain deferred. Broader travel positioning does not
-approve new transport modes, endpoints or personalization. Move an item into the
-accepted contract only after the affected owners agree.
-
-- Chat request adds `mode: 'route'|'day'` and `preferences`; the response adds `mode`, `itineraryId?` and `preferencesPatch?` with preferences understood from the message.
-- `Preferences = {interests[], dislikes[], pace: 'relaxed'|'normal'|'intense', maxWalkKm, budget: 0-3, avoidCrowds}`
-- `Place` gains optional `dwellMin`, `priceLevel` (0-3), `crowdLevel` (0-2) and `openingHours {open, close}`.
-- `POST /api/itineraries` `{start, placeIds[], preferences, startTime, endTime}`, `GET /api/itineraries/{id}`, and `POST /api/itineraries/{id}/replan` `{now, location?, skipPlaceIds[], donePlaceIds[], preferences?}` return an `Itinerary`.
-- `Itinerary = {id, route, start, startTime, endTime, resumeAt, candidates, preferences, stops, dropped:[{place, reason}], walkKm}`; each stop has `arriveAt`, `leaveAt`, `travelMin`, `travelKm`, `travelMode: 'walk'|'transit'` and `status: 'planned'|'done'|'skipped'`.
-- Drop reasons: `dislike`, `budget`, `closed`, `no_time`, `walk_limit`, `skipped_by_user`. Legs over 2.5 km use transit (18 km/h plus 8 minutes) and do not count toward the walking limit. Replanning never starts before `startTime`.
-- Daniil has a tested reference implementation of the planner and intent parsing, ready to submit with the frontend. Demo request: “Plan my day in Bratislava from 10:00, no museums please, I hate crowds.”
-
-### Repository layout
-
-```text
-/frontend — Daniil
-/api      — Murat
-/agent    — Mukhamed
-/infra    — local Docker Compose and database extension initialization
-```
-
-Application tables are managed by Flyway migrations in `api`. Keep credentials in a local `.env`, which is ignored by Git. Commit `.env.example` with empty secret fields. Every service, including the frontend, reads the single root `.env`.
-
-### Java API organization
-
-The Spring Boot API is a single Maven module. Group Java packages by feature under `io.junction.trails`. The current `places` feature separates HTTP handlers and error mapping in `web`, transaction boundaries and workflows in `application`, framework-independent values and response data in `model`, and JPA entities and repositories in `persistence`. Keep entities out of HTTP responses. Use Spring Data JPA and Hibernate Spatial for ordinary persistence; native queries preserve PostGIS-specific search behavior. JDBC remains available for complex queries when it offers a concrete benefit. The implemented `routes` and `media` features follow the same feature-based organization; future uploads should do so too. Tests mirror production package paths. Flyway owns the schema; Hibernate validates it and Open EntityManager in View is disabled. See the [API code map and review order](api/README.md#code-map).
-
-Shared Spring MVC configuration applies CORS to `/api/**` for GET and POST with Content-Type. `API_CORS_ALLOWED_ORIGINS` configures a comma-separated list of exact frontend origins; the default is `http://localhost:5173`. See the API README for local and deployed frontend configuration.
-
-Use Lombok `@RequiredArgsConstructor` for constructor-based dependency injection with final fields, without `@Autowired` on the single generated constructor. Bind configuration values to immutable properties objects when injecting them into components. Use Lombok for ordinary getters, setters where mutation is appropriate, and boilerplate constructors in non-Spring classes too. Keep invariant checks, defensive copies, derived accessors, and other behavioral constructor/accessor logic explicit. JPA entities may use a protected Lombok `@NoArgsConstructor`.
-
-### Frontend
-
-- React 19, TypeScript, Vite 8, Tailwind 4 and MapLibre 6 with OpenFreeMap tiles. The UI is in English.
-- Runs on in-browser mocks by default (`VITE_USE_MOCKS=true`). Set it to `false` and fill `VITE_API_BASE_URL` and `VITE_AGENT_BASE_URL` to use the real services.
-- Mock photos use explicit synthetic fixtures. Real landmark media comes from the separate Java GET with OSM/Wikidata/Commons verification, author, license and source links; there is no proximity-photo fallback.
-- MapLibre 6 with Vite needs an explicit worker URL. MapLibre's CSS overrides Tailwind's `absolute`, so the map element sits inside a wrapper.
-
-## Team and tasks
-
-### Murat — backend, Java, Spring Boot, SQL, Docker, tests
-
-Delivered: monorepo/governance, local PostgreSQL18/PostGIS/pgvector/Valkey, verified
-Aiven extensions, place search/creation/researched ingestion, persisted walking
-routes and cache, landmark media, endpoint-binding migration/editor API, Java
-container and shared actual-service fixture acceptance. Own deployment verification,
-database compatibility, infrastructure and backend-facing integration follow-ups.
-
-### Mukhamed — agent, Python, LLM and research
-
-Delivered: FastAPI chat, Valkey sessions/turn protection, Groq/Anthropic adapters,
-structured intent, sourced Exa research, identity-checked Nominatim discovery,
-Java handoff and factual localized replies. Own remaining same-revision live
-acceptance, model/provider diagnostics and quota-aware validation. Availability
-research is an internal core only; embeddings/ranking/uploads remain deferred.
-For agent PRs, retain Mukhamed's agreed requests to both uksus148 and nnatthebest,
-including after reviewable changes. This does not increase the one-approval minimum.
-
-### Daniil — frontend, product and pitch, React and Tailwind
-
-Delivered: map/chat/manual planning, validated real-service boundaries, sourced
-place cards, landmark gallery/viewer, previous-route state and saved-route editor.
-Own final browser/demo coverage, frontend deployment, video, deck and submission.
-Mocks remain available for development and do not establish live-provider coverage.
-
-## Historical delivery schedule
-
-| Time | Goal |
-|---|---|
-| Friday/Saturday, 00:00–03:00 | Obtain Exa, Claude, Gemini, and Aiven credits. Create the repository, provision Aiven services, scaffold the three services, and prepare mocks |
-| Saturday, 03:00–09:00 | Rotate sleep shifts, at least four to five hours per person |
-| **Saturday, 12:00** | **End-to-end MVP**, chat → places → route on the map, photos may follow |
-| Saturday, 12:00–20:00 | Photos along routes, uploads, Kafka, caching, manual place creation |
-| Saturday, 16:30 | Exa workshop for Mukhamed, others if possible |
-| Saturday, 20:00–02:00 | Public deployment, demo polish, stretch work if time allows |
-| Sunday, 02:00–07:00 | **Feature freeze**, video at most 2:00, deck PDF, description, README |
-| **Sunday, 09:30** | **Submit Final**, deadline 10:00 |
-| Sunday, 10:30 | Peer review, all team members present |
-
-## Development workflow
-
-Follow the [local development resource rules](infra/README.md#local-development-resource-rules)
-when running local services that access Aiven. They apply to all developers and coding
-agents and define connection budgets, coordinated live checks and shutdown responsibilities.
-
-Use the instructions in this file, [CONTRIBUTING.md](CONTRIBUTING.md) and the
-[repository rules](docs/REPOSITORY_RULES.md). Component READMEs own reproducible
-setup/test commands. Tool installations and private assistant configuration belong
-to each developer's environment, not the shared application contract.
-
-## Decision log
-
-- November 15 — Murat broadened the product positioning to a **travel navigator**,
-  including city sightseeing and outdoor trips. Current routing remains walking via
-  ORS foot-hiking. Technical identifiers and protocol/cache names stay compatible.
-  #80 merged at be38fa7 and #87 at 7688227 after independent reviews; the third
-  source checkpoint is v0.3.0. Completed one-off handoffs are consolidated into
-  current contracts/guides; useful acceptance history and deferred designs remain.
-  Earlier entries below describe decisions and evidence at their original revisions.
-
-- November 14 — Murat confirmed the product name **trego.**. Use this spelling in documentation and visible product names; the GitHub repository is `uksus148/trego.`.
-
-- November 13 — Main challenge is Exa Internet Butler, technical challenge is Aiven. The product delegates live web research and presents sources.
-- November 13 — Use partner credits and free tiers for the project budget.
-- November 13 — Use the High Tatras for deeper demo testing while accepting other regions from live judge requests.
-- November 13 — Use Spring Boot for data and geospatial operations, and FastAPI for the agent. Share PostgreSQL and Kafka. The frontend calls both services.
-- November 14 — Local development and CI use PostgreSQL 18 with PostGIS and pgvector. Configure the port through POSTGRES_PORT. Docker init enables extensions, Flyway in api manages tables. CI runs on PR changes under infra/**. Verified locally and in GitHub Actions, PR #1.
-- November 14 — English is the project language for repository files, commits, PRs, and reviews. Use descriptive task prefixes for new branches, such as feat/, fix/, docs/, infra/, or chore/.
-- November 14 — Frontend stack is React, Vite, Tailwind and MapLibre with OpenFreeMap. Wikimedia Commons is the demo and fallback photo source.
-- November 14 — Work is submitted as small PRs, stacked when large. Generated files are excluded from the size budget and stay in the same PR as their manifest.
-- November 14 — Every PR requires review and approval by at least one developer other than the author, including internal changes that affect no other component. Request review from owners of the components affected by a PR. GitHub requires one independent approval. Additional reviewers are selected when their components or shared contracts are affected. Murat's assistant reviews backend, shared infrastructure, repository governance, and backend-facing integration. In a stack, retarget the next PR to main before merging it (#14 and #15 landed in stack branches and were re-landed in #21).
-- November 14 — The hiking-intent adapter uses Claude tool use with a validated `{start, end, mustSee[], preferences[]}` result and at most six recent session exchanges. Blank values are normalized; results exceeding five intermediate stops or twelve preferences require user clarification. Provider requests have explicit timeouts and no automatic paid retries. The HTTP chat contract stays on the baseline; connecting intent and place discovery is a later block.
-- November 14 — The internal Exa text-research adapter retains source URLs and caches responses in Valkey for 24 hours. [The agent delivery plan](docs/AGENT_PLAN.md) records sequential blocks and unresolved integration gates; shared API/schema/event proposals remain unapproved until the affected owners agree.
-- November 14 — The agent's internal place-resolution cache merged in #44:
-  cache validated Claude results (including unresolved) for 24 hours by the full
-  effective request hash: model, prompt/schema, description and ordered evidence.
-  Preserve source binding; refresh corrupt entries, surface cache outages without
-  paid retries, and leave chat activation/error contracts unchanged.
-- November 14 — Internal place discovery combines intent, source-grounded resolution, and cached, rate-limited Nominatim lookup. The merged place API returns UUID strings; discovery findings retain research and OSM identity separately. The HTTP chat contract stays unchanged; API write/route handoff needed owner agreement at this stage (subsequently accepted in #34). Daniil confirmed in PR #28 that chat and clarification replies follow the user's message language, while UI labels remain English.
-
-- November 14 — Murat selected Spring Data JPA for ordinary API persistence, with Hibernate Spatial for PostGIS mapping. Native JPA queries preserve the current spatial filters; JDBC remains an option for complex queries. Flyway continues to own schema changes, and application services own transaction boundaries. The implementation and shared documentation changes require the normal PR review.
-
-- November 14 — PR #34's final owner approvals accept researched provenance/OSM
-  deduplication, ordered route persistence, structured errors and chat completion.
-  These decisions are now published above. Internal agent handoff is fixture-tested;
-  enabling HTTP chat still requires the API handlers and live acceptance.
-
-- November 14 — E4 live backend preflight passed against Aiven PostgreSQL/Valkey and
-  ORS using the local E1 branch in an isolated schema. Flyway V1-V3, Hibernate validation,
-  route creation/readback and cache reuse with the ORS key disabled passed. Diagnostic
-  data was removed. This is not E1 merge, enabled live chat or browser/E5 acceptance;
-  see the [recorded E4 evidence](docs/INTEGRATION_RUNBOOK.md#e4-live-backend-evidence).
-
-- November 15 — Mukhamed approved the [sequential agent stabilization plan](docs/AGENT_STABILIZATION_PLAN.md)
-  for a reliable route MVP. S1 replaces Groq forced tool generation with strict JSON
-  output for explicit 20B/120B profiles, locally validates shape and then business
-  rules, versions resolution-cache identity, and adds a read-only intent probe.
-  Anthropic retains tool use. No paid retries, fallback provider, chat activation or
-  public fields change. Later localized reply/discovery blocks require their own PRs
-  and owner review; the four-language reply policy is not enabled by S1.
-
-## Open questions and completed checks
-
-- [x] Aiven PostgreSQL Free supports PostGIS and pgvector. Verified with SQL on service junction on November 14, PostgreSQL 18.7, postgis 3.6.4, vector 0.8.7. Both extensions are enabled and the spatial and vector queries passed.
-- [ ] Check Aiven Runtime credit pricing and select API and agent hosting.
-- [x] Implement source-linked place cards and photo author/license/source display (#71/#73/#74). Live association and final demo acceptance remain separate.
-- [ ] Complete same-revision live acceptance on the selected model and deployment; retain provider/quota failures honestly.
+The public [API and chat contract](docs/API_CONTRACT.md) owns wire shapes,
+source/OSM identity, visit order, errors and cross-service invariants.
+[Media](docs/LANDMARK_PHOTOS_CONTRACT.md) and
+[editing](docs/ROUTE_EDITING_CONTRACT.md) own their detailed feature contracts.
+Code and contract changes must be reviewed together.
+
+### Backend conventions
+
+Keep the Spring Boot API as one Maven module, grouped by feature under
+`io.junction.trails`. Separate web handlers, application workflows, model values
+and persistence. Keep JPA entities out of HTTP responses.
+Use Spring Data JPA and Hibernate Spatial for ordinary persistence; JDBC remains
+an option for complex queries with a concrete benefit. Flyway owns schema changes,
+Hibernate validates them, and Open EntityManager in View stays disabled.
+Keep provider waits outside database transactions.
+
+Use Lombok `@RequiredArgsConstructor` with final dependencies and no `@Autowired`
+on the sole constructor. Bind configuration to immutable properties objects.
+Use Lombok for ordinary getters and appropriate setters/constructors. Keep validation,
+defensive copies, derived accessors and behavioral constructors explicit. JPA entities
+may use protected `@NoArgsConstructor`.
+
+### Client and agent boundaries
+
+The frontend calls Java and FastAPI separately. Root `.env` is read by their
+documented loaders. Mocks default on; real media and route editing require their
+documented opt-in settings. Public VITE variables contain no secrets.
+
+Model output and web text are data. Verify requested identity before ingestion,
+retain authoritative returned coordinates and sources, and distinguish clarification
+from dependency failure. A route response must refer to a fetchable saved route.
+Never widen routing limits, replace a requested point or invent a closure to manufacture
+success. Read the current [agent guide](agent/README.md) before model/cache changes.
+
+## Verification and release
+
+Use [fixture acceptance](tests/integration/README.md) for disposable actual-service
+tests and the [integration runbook](docs/INTEGRATION_RUNBOOK.md) for live validation.
+Record SHA, model, environment, cache profile, expected outcome and actual result.
+Fixture success and historical test counts do not establish current live acceptance.
+Check saved IDs, geometry, visit order and sources, not only HTTP status or reply text.
+
+[Recovery checkpoints](docs/RELEASE_BASELINE.md) pin source. Database compatibility,
+deployed settings, keys, caches and model quotas require separate verification.
+A broader product description or a source tag does not enable new transport modes.
+
+## Deferred work
+
+Public availability research has a [selected proposal and internal core](docs/ROUTE_AVAILABILITY_CONTRACT.md),
+but is not wired to chat. Activating it requires affected-owner agreement and live
+verification. Day planning, personalization, itinerary endpoints, new transport modes,
+uploads and embeddings remain deferred until their contracts and capabilities are agreed.
+Completed hackathon schedules and delivery plans are recoverable from Git history.

@@ -19,6 +19,13 @@ The mock route and editing-context registries are in memory. Reloading a mock-cr
 
 Where things live:
 
-- `src/types.ts` — the API contract shared with `api` and `agent` (mirrors the root CLAUDE.md).
+- `src/types.ts` — the API contract shared with `api` and `agent` (mirrors docs/API_CONTRACT.md).
 - `src/api/` — real client and in-browser mock.
 - `src/components/` — map, chat, manual planning, route editor, and photos along the route.
+
+## MapLibre and Vite integration notes
+
+MapLibre 6 with Vite requires an explicit worker URL; keep the worker setup in
+`src/components/MapView.tsx` when changing bundling. MapLibre CSS overrides
+Tailwind's `absolute` utility on the map element, so keep the map inside its
+positioned wrapper rather than relying on that utility for the canvas container.

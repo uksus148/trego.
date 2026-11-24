@@ -81,27 +81,14 @@ A successful search checks API/database availability. It does not check Valkey, 
 live chat or the browser; use the runbook's separate routing/cache and E2E checks.
 Building an image or starting this container does not establish public deployment.
 
-## Local verification
+## Verification
 
-On November 14, 2026, the image built on Linux arm64 with Java 21 and ran as UID/GID
-10001. An isolated smoke passed Flyway V1-V3, Hibernate validation, a readable read-only
-CA mount, manual 201 creation, sourced 201/200 replay, CORS, route 201/GET 200 and a
-cached repeat with one fixture ORS call and a bounded 24-hour TTL. Docker stop completed
-without an OOM. Only its disposable containers/network were removed; the existing local
-services and Aiven data were not changed. The generated local report is
-`api/target/container-smoke.json` (ignored). This is container verification, not a new
-live Aiven check or browser E2E result. The API workflow adds image construction after
-Java 21 tests; see the PR for its actual CI result. This local smoke verifies arm64
-runtime only; an amd64 image build alone does not establish amd64 runtime acceptance.
+API CI runs the Java tests and builds the container. Before relying on a runtime
+target, verify its architecture, non-root UID/GID 10001, read-only CA mount, root-owned
+JAR permissions, current Flyway migrations, CORS and saved-route readback. Use local
+provider fixtures for controlled routing/cache failures. Shared/cloud checks follow
+the integration runbook and resource rules.
 
-The PR #46 review follow-up rebuilt the arm64 image after rebasing onto merged #47.
-The isolated smoke passed again and additionally verified `/app/app.jar` ownership
-`0:0`, mode `0644`, and no write access to either the JAR or `/app` for UID 10001.
-Its ignored report is `api/target/container-review-smoke.json`; application source
-and dependencies match the rebased main. No live services were used for this check.
-
-For size comparisons, record the architecture, image ID, Docker version and measurement.
-`docker image ls` on the review workstation reports about 515 MB for the arm64 image;
-the earlier author report recorded `docker image inspect`'s `Size` field near 155 MB.
-These are different Docker measurements, not an established compressed registry size.
-No registry image has been published; do not label the smaller figure as download size.
+Historical arm64 smoke evidence and image-size measurement discussion remain in
+PR #46. An image build alone does not prove runtime behavior on another architecture.
+Record architecture, image ID and measurement method when comparing sizes.

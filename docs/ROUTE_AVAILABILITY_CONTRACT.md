@@ -4,7 +4,7 @@
 and structured output.** Field names/state rules below are the concrete proposal for
 Mukhamed and Daniil to review. They are not enabled on the current chat endpoint.
 Murat's Java change enforces the separate routing boundary. The
-[team plan](ROUTE_AVAILABILITY_RESEARCH_PLAN.md) defines evidence rules and ownership.
+sections below define evidence rules, ownership and the internal interface.
 
 ## Ownership and storage
 
@@ -17,11 +17,9 @@ Murat's Java change enforces the separate routing boundary. The
   Java research endpoint or additional routing call is needed for this slice. A later
   cache/history design needs separate agreement; do not inherit the route cache TTL.
 
-Related work: Mukhamed's [PR #56](https://github.com/uksus148/trego./pull/56) proposes
-an internal research core without HTTP chat wiring. This PR does not include that
-implementation or claim its approval. Mapping the proposed public dates/evidence to
-that internal interface needs his review. Java validation can be reviewed independently;
-reconcile shared documentation when the other PR merges, preserving both ownership entries.
+The internal research core merged in [PR #56](https://github.com/uksus148/trego./pull/56).
+Its interface and limits are retained below. Public chat mapping, operator policy and
+activation remain deferred and require affected-owner agreement.
 
 ## Chat request proposal
 
@@ -97,7 +95,8 @@ design; it must not silently replay the route POST.
 
 ## Spring API boundary implemented by Murat
 
-`POST /api/routes` accepts exactly `start`, `end`, `placeIds`, `preferences`.
+`POST /api/routes` requires `start`, `end`, `placeIds`, `preferences` and accepts the optional
+`startPlaceId`/`endPlaceId` bindings from the editor contract.
 Each endpoint accepts exactly `lat`, `lon`. Research flags, planning dates, evidence,
 provider/profile overrides and other unknown fields return 400 `invalid_request` before
 ORS work, route-cache writes or route persistence. They are never silently treated as
@@ -112,3 +111,13 @@ Review the exact names/validation with both owners, then add equivalent agent/fr
 tests before activation. The current chat service still rejects these new request fields.
 Java regression tests cover strict root/endpoint input and zero provider/cache/route
 effects on rejection; the existing route tests cover compatible successful requests.
+
+
+## Internal research core and activation
+
+The implemented internal interface, operator policy, source-completeness rules,
+deadlines, validation and example call live in [agent/AVAILABILITY.md](../agent/AVAILABILITY.md).
+That guide is the single internal-core reference retained by the agent handbook.
+This document owns the deferred public wire proposal. Neither document enables
+HTTP research; date/evidence mapping, consent, policy and UI activation still need
+separate affected-owner agreement and verification.

@@ -1,7 +1,7 @@
 # Optional route-availability research core
 
 This implements Mukhamed's internal slice of the
-[team plan](../docs/ROUTE_AVAILABILITY_RESEARCH_PLAN.md) after merged #54.
+[team plan](../docs/ROUTE_AVAILABILITY_CONTRACT.md) after merged #54.
 It is explicitly composed and invoked; `create_chat`, HTTP payloads, startup,
 session records and the reply writer are unchanged. Murat selected optional consent,
 planning dates and structured evidence on existing chat in the

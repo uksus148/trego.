@@ -12,7 +12,7 @@ owns the map. A model response alone never proves that a place or route is corre
    open questions and the replacement plan. This is our single working notebook.
 2. [VERIFY.md](VERIFY.md): checks without team keys, provider probes, diagnostics
    and the limits of each kind of evidence.
-3. [Accepted handoff](../docs/AGENT_API_HANDOFF.md) and [root decisions](../CLAUDE.md):
+3. [Accepted handoff](../docs/API_CONTRACT.md) and [root decisions](../CLAUDE.md):
    authoritative shared contracts. The notebook cannot override them.
 
 The [availability core](AVAILABILITY.md) is implemented internally but disconnected

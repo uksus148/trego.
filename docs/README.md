@@ -1,51 +1,45 @@
-# trego. documentation
+# Documentation map
 
-trego. is a travel navigator for sightseeing and outdoor trips. Current routing is
-walking via ORS `foot-hiking`. Broader positioning does not enable driving, cycling,
-transit, personalized routing or date-aware availability.
+Read [CLAUDE.md](../CLAUDE.md) first for shared instructions and ownership. Then open
+only the contract and service guide relevant to the task. Git history and PR discussions
+retain completed handoffs, old schedules and test-run evidence.
 
-## Start here
+## Authoritative references
 
-- [Project overview and setup](../README.md).
-- [Canonical architecture, API contract and owner tasks](../CLAUDE.md).
-- [Contribution conventions](../CONTRIBUTING.md) and [repository rules](REPOSITORY_RULES.md).
-- [Integration ledger, startup and evidence](INTEGRATION_RUNBOOK.md).
-- [Version checkpoints and recovery](RELEASE_BASELINE.md).
+| Question | Source |
+|---|---|
+| What does trego. do, and how do I start? | [Project README](../README.md) |
+| Who owns the change and what rules apply? | [CLAUDE.md](../CLAUDE.md), [contributing and repository rules](../CONTRIBUTING.md) |
+| What crosses service boundaries? | [API/chat contract](API_CONTRACT.md) |
+| How do verified landmark photos work? | [Media contract](LANDMARK_PHOTOS_CONTRACT.md) |
+| How does saved-route editing work? | [Editing contract](ROUTE_EDITING_CONTRACT.md) |
+| How do we run a live integrated check? | [Integration runbook](INTEGRATION_RUNBOOK.md) |
+| How do we verify a source release or recover it? | [Recovery guide](RELEASE_BASELINE.md) |
+| How do we conserve shared cloud resources? | [Local resource rules](../infra/README.md#local-development-resource-rules) |
 
-## Implemented contracts and guides
+## Implementation and operation
 
-| Area | Contract / behavior | Setup / review guide |
-|---|---|---|
-| Places and researched ingestion | [Accepted API handoff](AGENT_API_HANDOFF.md) | [API](../api/README.md), [ingestion](../api/INGESTION.md) |
-| Saved walking routes | [Canonical contract](../CLAUDE.md#api-contract) | [Routing](../api/ROUTES.md), [provider diagnostics](ROUTING_DIAGNOSTICS.md) |
-| Landmark information/photos | [Media contract](LANDMARK_PHOTOS_CONTRACT.md) | [Media implementation](../api/MEDIA.md) |
-| Route editing | [Editor v1](ROUTE_EDITING_CONTRACT.md), [shared examples](contracts/route-editing.examples.json) | [Java trace/V4](../api/ROUTE_EDITING.md), [frontend](../frontend/README.md) |
-| Chat and place identity | [Canonical chat contract](../CLAUDE.md#api-contract) | [Agent](../agent/README.md), [OSM identity](../agent/OSM_IDENTITIES.md), [requested identity](../agent/IDENTITY_REVIEW.md) |
-| Local services and delivery | [Infrastructure](../infra/README.md) | [API container](../api/CONTAINER.md), [fixture acceptance](../tests/integration/README.md) |
+| Component | Guides |
+|---|---|
+| Java API | [Code map and setup](../api/README.md), [ingestion](../api/INGESTION.md), [routing](../api/ROUTES.md) |
+| Media/editor backend | [Media](../api/MEDIA.md), [editing](../api/ROUTE_EDITING.md) |
+| Agent | [Setup](../agent/README.md), [architecture and working notebook](../agent/ARCHITECTURE.md), [verification](../agent/VERIFY.md) |
+| Frontend | [Setup and feature flags](../frontend/README.md) |
+| Local dependencies/container | [Infrastructure](../infra/README.md), [Java container](../api/CONTAINER.md) |
+| Automated integration | [Disposable fixture acceptance](../tests/integration/README.md) |
 
-The real editor and landmark media require explicit activation. Follow the service
-guides and deploy the corresponding API/schema before enabling frontend consumers.
+## Deferred proposal
 
-## Retained plans and evidence
+[Availability research](ROUTE_AVAILABILITY_CONTRACT.md) retains the selected wire
+proposal; [the internal core](../agent/AVAILABILITY.md) remains a separate agent-owned guide. Public chat activation remains
+deferred. Other deferred directions are listed in CLAUDE.md. Read a proposal only
+when working on that capability; it does not extend the current API.
 
-The [agent delivery record](AGENT_PLAN.md) and [stabilization sequence](AGENT_STABILIZATION_PLAN.md)
-preserve diagnostic decisions and still-open live acceptance gates. Earlier test
-counts, model results and revision IDs remain historical evidence.
+## Updating documentation
 
-The availability [research plan](ROUTE_AVAILABILITY_RESEARCH_PLAN.md),
-[wire proposal](ROUTE_AVAILABILITY_CONTRACT.md) and [internal agent core](../agent/AVAILABILITY.md)
-remain useful for deferred work. They do not describe an enabled public feature.
-Day planning and personalization remain proposals in CLAUDE.md. Keep these documents
-until their owners explicitly supersede the design or close the remaining work.
-
-## Completed handoffs removed for version 3
-
-| Removed file | Why it is redundant | Authoritative replacement |
-|---|---|---|
-| `CONTRACT_REVIEW.md` | Initial unresolved questions were superseded by accepted contracts; deferred proposals already live in CLAUDE.md | CLAUDE.md, AGENT_API_HANDOFF.md and repository review rules |
-| `ROUTE_EDITING_FRONTEND_PROMPT.md` | One-off implementation prompt completed by merged #87; it targeted an older baseline | ROUTE_EDITING_CONTRACT.md, shared examples, component guides and executable tests |
-| `LANDMARK_MEDIA_BACKEND_HANDOFF.md` | Draft delivery note completed by #73/#71/#74 | LANDMARK_PHOTOS_CONTRACT.md and api/MEDIA.md, including thumbnail hosts and consumer compatibility notes |
-
-Deletion removes obsolete instructions from the current checkout. Their exact
-historical contents remain recoverable through Git and earlier version tags.
-Contracts, migrations, recovery instructions and unique diagnostic evidence remain.
+Keep each current rule in its authoritative document and link from consumers.
+Service guides own executable commands and implementation details. Update the shared
+contract when behavior changes; keep examples synchronized with code and tests.
+Record run-specific SHA/model/results in PR evidence rather than copying historical
+test counts into every guide. Delete completed one-off plans after their remaining
+invariants and operational instructions have been incorporated into current references.

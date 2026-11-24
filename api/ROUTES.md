@@ -175,7 +175,7 @@ Errors use `application/problem+json` with English `detail` and a stable `code`.
 Merged #54 splits numeric ORS 2009/2010 on HTTP 400/404 into the two 422 outcomes above.
 Neither confirms a trail closure,
 difficulty filter or seasonal cause. The adapter never widens the radius, changes providers,
-drops waypoints or retries for success. See [demo verification](../docs/ROUTING_DIAGNOSTICS.md).
+drops waypoints or retries for success. See [demo verification](ROUTES.md#preserve-the-routing-conditions).
 Unknown errors, quota failures, authentication failures, and generic
 provider 404s remain provider errors. SQL programming/constraint errors are not silently
 classified as user mistakes. The required cache is never silently bypassed.
@@ -219,3 +219,61 @@ and `RouteEntity`, the V2 migration, `OrsRoutingGateway`, then the HTTP controll
 and the tests. For this follow-up, also trace `RoutingQuery`, `CachedRoutingGateway`,
 `ValkeyRouteTrackCache`, and `RoutingCacheKey`. Verification against the team's live Aiven
 Valkey and ORS credentials is separate from container/fixture checks and remains pending.
+
+
+## Preserve the routing conditions
+
+Keep the configured ORS endpoint and `foot-hiking`, ordered coordinates,
+`elevation=true`, `instructions=false`, and metre units. Do not increase or disable
+the snapping radius, relax difficulty/access filters, change providers, drop stops,
+replace a waypoint or automatically replay the POST to obtain success.
+This fix changes no request body, timeout, cache key or provider option.
+
+The [ORS error reference](https://giscience.github.io/openrouteservice/v9.10.0/api-reference/error-codes)
+distinguishes these numeric results on HTTP 400/404:
+
+| ORS code | API HTTP/code | Confirmed meaning |
+|---|---|---|
+| 2009 | 422 `no_hiking_route` | No route found between the locations under the current conditions |
+| 2010 | 422 `waypoint_not_routable` | A waypoint could not be matched to the available hiking network within the provider search radius |
+
+Unknown, malformed, non-integral or overflowing codes remain provider errors.
+Authentication, quota, outages and timeouts are not reclassified. Match structured
+numeric codes, not English provider messages; never expose provider bodies.
+Neither result establishes a closure, season, difficulty exclusion or bad coordinate
+as its cause. Do not identify a particular failed point without structured evidence.
+
+This does not prohibit independently researching restrictions. The
+[team research plan](../docs/ROUTE_AVAILABILITY_CONTRACT.md) proposes a later opt-in flow
+with dated sources; it must keep an external finding separate from the cause of ORS failure.
+
+The agent recognizes each complete 422 Problem Details response as its own typed result.
+For an unmatched waypoint, it asks to check coordinates or choose another point, with
+no routeId, substitution or radius retry. Earlier ingested places may remain. Unknown
+or inconsistent problems remain dependency errors. The frontend retains the code and
+displays the safe API detail without new UI fields.
+
+## Bounded live verification
+
+On November 14, 2026, two direct live ORS POSTs used exactly the existing options,
+default radius and no automatic retries. Coordinate pairs are `[lon,lat]`, from Daniil's
+reported Nominatim findings. No coordinate was moved to improve snapping. These
+diagnostic requests made no PostgreSQL or Valkey writes.
+
+| Case | Ordered coordinates | Result |
+|---|---|---|
+| Original Rysy via Skok | `[20.0636,49.1194]`, `[20.04527,49.15312]`, `[20.08846,49.17932]` | HTTP 404, ORS 2010; response identified coordinate 2 and 350 m radius |
+| Revised Popradské pleso via Skok | `[20.0636,49.1194]`, `[20.04527,49.15312]`, `[20.0795,49.1532]` | HTTP 200; 14,752.2 m, 17,360.7 s, 741.1 m ascent; 607 geometry points; waypoint indices 0/218/606 |
+
+The first confirms a failed network match, not why the graph excluded it. The second
+verifies topology through all three visits, not trail legality, current conditions or
+the full browser workflow. Never substitute Popradské pleso for a user-requested Rysy.
+
+## Demo and safety boundary
+
+The standard demo asks for a July hike from Štrbské Pleso to Popradské pleso via Skok.
+The original Rysy case remains a network-match regression. A seasonal word in chat
+does not change ORS options or prove access/safety. Keep current provider limits and
+waypoints. Do not widen the snapping radius or substitute another destination to
+manufacture success. Historical provider observations and seasonal-source checks
+are recorded in PR #54; recheck authoritative sources for a real trip.

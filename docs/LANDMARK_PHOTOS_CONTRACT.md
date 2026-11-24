@@ -9,7 +9,7 @@ in [api/MEDIA.md](../api/MEDIA.md); code review and fixture acceptance do not
 establish final live image/demo acceptance.
 Read canonical [CLAUDE.md](../CLAUDE.md) first; existing chat/routing contracts remain.
 
-## 1. Deliver before feature freeze
+## 1. Implemented scope
 
 - Prepare multiple demo scenarios, each with at least two distinct photographed
   landmarks. The Tatras demo initially targets **Štrbské Pleso, Skok waterfall and
@@ -31,17 +31,13 @@ Read canonical [CLAUDE.md](../CLAUDE.md) first; existing chat/routing contracts 
 - Use the existing Spring Boot Maven module and feature packages. No separate Java
   module, new database migration, worker or Kafka integration is needed.
 
-Target the integrated slice by 06:00 Helsinki, leaving time for review and E2E before
-07:00 feature freeze. 09:30 is the team's submission target; canonical event deadline
-remains as documented in CLAUDE. These are delivery gates, not a guarantee of duration.
-
 Local backend activation is explicit: API_MEDIA_ENABLED=true. Default false keeps
 the endpoint/workers disabled (404) on the existing MVP profile. See
 [API environment example](../api/media.env.example) and
 [media compatibility notes](../api/MEDIA.md#compatibility-notes-for-reviewers). Do not turn the feature on
 implicitly while stabilizing/versioning the route MVP. The frontend is merged; verify the selected target and live assets before joint activation.
 
-## 2. General discovery and remaining technical agreement
+## 2. Automatic discovery
 
 Automatic discovery outside the curated set is part of the requested capability,
 not a claim that arbitrary internet photos are available or verified. The implemented
@@ -62,18 +58,7 @@ Kafka, embeddings and route-corridor association stay deferred.
 
 A catalog-only milestone may be demonstrated with explicit limited coverage, but
 does not complete the newly requested general-discovery feature. Preserve the
-deadline and report that gap if the automatic path is not finished or verified.
-
-## 3. Historical frontend corrections — delivered in #71
-
-Before #71, `frontend/src/api/wikimedia.ts` searched a 1,500 m radius, substitutes Place
-coordinates for missing image coordinates and supplies unknown-author/license strings.
-**Its caller is mockStore.ts, not the real-service frontend.** The merged mock path now consumes explicit fixtures; it makes no live proximity
-photo search. The old wikimedia.ts helper has been removed.
-
-PhotoViewer now displays the gallery's **url** without inventing legacy Photo
-coordinates. Along-the-way media comes from canonical place media and ordered route
-visits; Route.segments remains unchanged. These are delivered behaviors, not open work.
+verification run and report any gap in the selected environment.
 
 ## 4. Catalog preparation and identity proof
 
@@ -101,7 +86,7 @@ catalog lookup component. Validate catalog structure, IDs, URLs and required met
 in tests. Invalid defensive runtime candidates are omitted and logged safely, never
 repaired with fake credits/coordinates. The catalog is refreshed through reviewed changes.
 
-## 5. Proposed read API and exact response
+## 5. Read API and exact response
 
 `GET /api/places/{placeId}/media` accepts an existing Place UUID, with no query
 parameters. Unknown parameters return 400, including a frontend cache-buster.
@@ -258,7 +243,7 @@ if explicitly chosen later, must be labelled and not claimed as live integration
 
 ## 9. Responsibilities and acceptance
 
-| Owner | Deadline-focused deliverable |
+| Owner | Responsibility |
 |---|---|
 | Murat | Existing-module media endpoint/DTO, canonical OSM lookup, catalog and agreed bounded automatic adapter; independent place information and photo outcomes; integration/error tests |
 | Mukhamed | Verify canonical identities and subject/source evidence, review automatic identity resolution/provider coordination and sourced description policy; preserve agent baseline |
@@ -286,18 +271,9 @@ Required checks before enabling:
 | Candidate | Minimum photographed subjects | Gate before presenting |
 |---|---|---|
 | July Tatras: Strbske Pleso -> Skok -> Popradske pleso | At least two distinct subjects among the three canonical landmarks | Actual route, exact OSM identities, two reviewed images and cards verified live |
-| Bratislava Castle -> St. Martin's Cathedral | Both distinct landmarks | Text discovery previously needed clarification; fix/verify it or explicitly demonstrate manual routing, then verify both photos |
+| Bratislava Castle -> St. Martin's Cathedral | Both distinct landmarks | Verify current text or manual route entry and both photo associations |
 
 Keep reviewed prompts, tested revision, routing entry mode and approved image/OSM
 identities together in the eventual demo manifest. Do not label either photo demo
 ready until those checks pass. A spectator request outside these scenarios exercises
 the automatic path; missing photos simply leave information-only cards.
-
-Existing E5 evidence is not “never passed”: Daniil recorded a successful **20B** matrix
-in [#63](https://github.com/uksus148/trego./issues/63), and Murat recorded separate 120B
-results there. Neither establishes this new photo feature or replaces a rerun of the
-final integrated revision (including #64 and any subsequent accepted fixes).
-
-References for the deferred provider path: [Nominatim lookup](https://nominatim.org/release-docs/latest/api/Lookup/),
-[Wikidata P18](https://www.wikidata.org/wiki/Property:P18),
-[Commons Imageinfo](https://www.mediawiki.org/wiki/API:Imageinfo).

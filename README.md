@@ -38,9 +38,9 @@ embeddings remain deferred.
 ## Getting started
 
 1. Clone the repository and create a task branch from the current main. Use a descriptive prefix such as feat/, fix/, docs/, infra/, or chore/.
-2. Read [CLAUDE.md](CLAUDE.md) for architecture, the API contract, and team tasks.
+2. Read [CLAUDE.md](CLAUDE.md) for architecture, ownership and the contract map.
 3. Copy `.env.example` to a root `.env` and fill in values for your service. The template lists shared addresses and empty secret fields.
-4. Read [CONTRIBUTING.md](CONTRIBUTING.md) and the [repository rules](docs/REPOSITORY_RULES.md) before opening a PR.
+4. Read [CONTRIBUTING.md](CONTRIBUTING.md) for commit, review and repository rules before opening a PR.
 
 ```sh
 git clone https://github.com/uksus148/trego. trego

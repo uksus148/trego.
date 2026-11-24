@@ -6,7 +6,7 @@ Use **implemented**, **proposed direction**, and **idea to evaluate** explicitly
 Repository documentation is English; learning explanations in chat are Russian.
 
 Baseline reviewed: main `c38953f` (through #90). The shared [root decisions](../CLAUDE.md)
-and [handoff contract](../docs/AGENT_API_HANDOFF.md) remain authoritative.
+and [handoff contract](../docs/API_CONTRACT.md) remain authoritative.
 This document proposes internal work; it approves no new public fields or Java changes.
 
 ## Goal, ownership and learning position
@@ -107,11 +107,22 @@ Implemented: recent text history, model follow-up interpretation, stale-stop fil
 session ownership and owner-checked exchange append. A lease prevents overlapping
 turns but does not fence an already running Java write or undo a saved route.
 
-Implemented city tours (#90): eligible incomplete/same-city/over-limit requests
-can research up to ten suggestions and retain up to seven distinct located sights.
-Tour visits are ordered west to east; this is not shortest-tour optimization.
-Explicitly named sights must all resolve; optional suggestions may be skipped.
-Selection can make one additional generation when the suggestion list is short.
+Implemented city tours (#90): missing endpoints, same-city endpoints without
+intermediate stops, and eligible over-limit intents can enter tour detection.
+Complete routes between distinct endpoints retain the ordinary path. Optional
+research suggestions may be skipped if they cannot resolve; retain at most seven
+distinct located sights (start, five stops, end), ordered west to east, not as a
+shortest-tour optimization. Research selection can make one additional model call
+when it returns fewer than five suggestions (MIN_SUGGESTIONS).
+
+If an over-limit extraction lists sights that the user explicitly named, those
+names replace optional research suggestions. Every named sight must resolve to a
+single exact OSM match; ask about an unmatched sight rather than dropping it. More
+than seven named sights require reduction. This path cites each OSM object URL;
+optional research suggestions cite their selected Exa evidence. Fewer than two
+located sights produce a nonblank destination clarification, including same-city
+intents, without Java writes. These rules describe the merged implementation;
+shared policy status and live acceptance remain separate from documentation cleanup.
 
 Proposed regression case: request a route from an airport, then supply a named
 destination after clarification. Verify that the airport qualifier survives, or
