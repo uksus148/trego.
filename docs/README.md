@@ -43,14 +43,3 @@ contract when behavior changes; keep examples synchronized with code and tests.
 Record run-specific SHA/model/results in PR evidence rather than copying historical
 test counts into every guide. Delete completed one-off plans after their remaining
 invariants and operational instructions have been incorporated into current references.
-
-## Consolidation ownership and merge order (#94 then #92)
-
-PR #94 owns the agent handbook structure: README for setup, ARCHITECTURE for the
-working notebook, VERIFY for checks, plus old-path compatibility pointers. PR #92
-is stacked on #94 and owns shared instructions/contracts, Java/frontend guides and
-the documentation map. It retains #94's structure and pointers; its small agent
-edits update the canonical contract/core links and preserve exact city-tour rules.
-Merge #94 first, retarget #92 to main after the squash, then verify the effective
-diff, links and checks again. This order implements the requested coordination;
-it does not merge either PR or establish acceptance of unrelated agent-v2 work.
