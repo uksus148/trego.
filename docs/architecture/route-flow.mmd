@@ -3,18 +3,24 @@ config:
   theme: base
   themeVariables:
     darkMode: true
-    background: '#000000'
-    mainBkg: '#171717'
-    actorBkg: '#171717'
-    actorBorder: '#A3A3A3'
-    actorTextColor: '#F5F5F5'
-    actorLineColor: '#737373'
-    signalColor: '#E5E5E5'
-    signalTextColor: '#F5F5F5'
-    labelBoxBkgColor: '#171717'
-    labelBoxBorderColor: '#A3A3A3'
-    labelTextColor: '#F5F5F5'
-    loopTextColor: '#F5F5F5'
+    background: '#111827'
+    mainBkg: '#1e293b'
+    actorBkg: '#193451'
+    actorBorder: '#7cbcf8'
+    actorTextColor: '#f1f5f9'
+    actorLineColor: '#64748b'
+    signalColor: '#94a3b8'
+    signalTextColor: '#e2e8f0'
+    labelBoxBkgColor: '#183c3d'
+    labelBoxBorderColor: '#68cfbf'
+    labelTextColor: '#f1f5f9'
+    loopTextColor: '#e2e8f0'
+  sequence:
+    diagramMarginX: 18
+    diagramMarginY: 16
+    actorMargin: 50
+    messageMargin: 28
+    mirrorActors: false
 ---
 sequenceDiagram
     participant Web as Web app
@@ -26,17 +32,21 @@ sequenceDiagram
 
     alt Plan in chat
         Web->>Agent: POST /api/chat
-        Agent->>Agent: Resolve requested places and visit order
-        Agent->>API: Persist canonical places
+        Agent->>Agent: Resolve places and visit order
+        loop Each distinct resolved place
+            Agent->>API: POST /api/places
+            API-->>Agent: Canonical Place
+        end
         Agent->>API: POST /api/routes
     else Plan on the map or rebuild
         opt Open a saved route for editing
             Web->>API: GET /api/routes/{id}/editing-context
+            API-->>Web: Original inputs
         end
         Web->>API: POST /api/routes
     end
     API->>DB: Resolve and validate place references
-    API->>Cache: Look up the route geometry
+    API->>Cache: Look up the routing result
     opt Cache miss
         API->>ORS: Calculate a foot-hiking route
         ORS-->>API: Geometry and metrics
@@ -45,7 +55,12 @@ sequenceDiagram
     API->>DB: Save the new route snapshot
     alt Chat request
         API-->>Agent: 201 with the saved route
+        Agent->>API: GET /api/routes/{id}
+        API-->>Agent: Saved route
+        Agent->>Agent: Check the saved stop order
         Agent-->>Web: Chat response with route ID
+        Web->>API: GET /api/routes/{id}
+        API-->>Web: Saved route and geometry
     else Map or editor request
         API-->>Web: 201 with the saved route
     end

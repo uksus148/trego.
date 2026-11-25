@@ -26,23 +26,29 @@ photos remain an honest empty result. The app does not infer closures from routi
 
 ![System architecture of trego.](docs/architecture/system.svg)
 
-The services use local PostgreSQL and Valkey via Docker Compose or managed instances on Aiven.
-The web app talks directly to both services. The Java API owns saved routes and
-place data, including routes created through chat.
+The web app calls the FastAPI agent for chat and the Spring Boot API for places
+and routes. The Java API owns PostgreSQL access. Both backends use Valkey.
+PostgreSQL and Valkey can run via Docker Compose or as managed services on Aiven.
+
+When landmark media is enabled, the Java API serves verified photo metadata.
+It tries the curated catalog first and can discover photos for known OSM places
+on a catalog miss. The browser loads the images from the returned URLs.
 
 The two entry points converge on the same route creation API:
 
 ![Sequence diagram for creating and rebuilding walking routes](docs/architecture/route-flow.svg)
 
-The sequence shows a successful route build. Opening the editor reads the
-original inputs. Rebuilding saves a new route and keeps the original available.
+The sequence shows successful route creation. In chat, the agent verifies the saved
+route before returning its ID, then the browser reads the route to draw it on the
+map. A successful editor rebuild saves a new route, keeps the original available,
+and starts a fresh chat session.
 
 The diagrams can be regenerated from the [D2 source](docs/architecture/system.d2)
 and [Mermaid source](docs/architecture/route-flow.mmd):
 
 ```sh
 d2 --layout=elk --theme=200 docs/architecture/system.d2 docs/architecture/system.svg
-mmdc -b '#000000' -i docs/architecture/route-flow.mmd -o docs/architecture/route-flow.svg
+mmdc -b '#111827' -i docs/architecture/route-flow.mmd -o docs/architecture/route-flow.svg
 ```
 
 ## Team and repository layout
