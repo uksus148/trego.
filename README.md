@@ -20,6 +20,61 @@ Landmark media and the real-service editor are opt-in; follow their service guid
 before enabling them. Missing or ambiguous places require clarification, and missing
 photos remain an honest empty result. The app does not infer closures from routing failures.
 
+## Architecture
+
+![System architecture of trego.](docs/architecture/system.svg)
+
+The services use local PostgreSQL and Valkey via Docker Compose or managed instances on Aiven.
+The web app talks directly to both services. The Java API owns saved routes and
+place data, including routes created through chat.
+
+The two entry points converge on the same route creation API:
+
+```mermaid
+sequenceDiagram
+    participant Web as Web app
+    participant Agent as FastAPI agent
+    participant API as Spring Boot API
+    participant Cache as Valkey
+    participant ORS as OpenRouteService
+    participant DB as PostgreSQL
+
+    alt Plan in chat
+        Web->>Agent: POST /api/chat
+        Agent->>Agent: Resolve requested places and visit order
+        Agent->>API: Persist canonical places
+        Agent->>API: POST /api/routes
+    else Plan on the map or rebuild
+        opt Open a saved route for editing
+            Web->>API: GET /api/routes/{id}/editing-context
+        end
+        Web->>API: POST /api/routes
+    end
+    API->>DB: Resolve and validate place references
+    API->>Cache: Look up the route geometry
+    opt Cache miss
+        API->>ORS: Calculate a foot-hiking route
+        ORS-->>API: Geometry and metrics
+        API->>Cache: Cache the routing result
+    end
+    API->>DB: Save the new route snapshot
+    alt Chat request
+        API-->>Agent: 201 with the saved route
+        Agent-->>Web: Chat response with route ID
+    else Map or editor request
+        API-->>Web: 201 with the saved route
+    end
+```
+
+The sequence shows a successful route build. Opening the editor reads the
+original inputs. Rebuilding saves a new route and keeps the original available.
+
+The [D2 source](docs/architecture/system.d2) can be rendered with D2 v0.9.0:
+
+```sh
+d2 --layout=elk --theme=0 --dark-theme=200 docs/architecture/system.d2 docs/architecture/system.svg
+```
+
 ## Team and repository layout
 
 | Directory | Purpose and stack | Owner |

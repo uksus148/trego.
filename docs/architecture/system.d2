@@ -1,0 +1,24 @@
+direction: down
+
+browser: "Web app\nReact · Vite · MapLibre"
+agent: "Chat agent\nPython · FastAPI"
+api: "Route and place API\nJava · Spring Boot"
+
+postgres: "PostgreSQL + PostGIS\nPlaces and saved routes" {shape: cylinder}
+valkey: "Valkey\nSessions, caches and rate limits" {shape: cylinder}
+
+tiles: "Map tiles\nOpenFreeMap"
+discovery: "Place discovery\nExa · LLM · Nominatim"
+routing: "Walking routes\nOpenRouteService"
+media: "Landmark photo metadata\nNominatim · Wikidata · Wikimedia Commons"
+
+browser -> tiles
+browser -> agent: Chat
+browser -> api: Map planning, edits and media
+agent -> discovery
+agent -> api: Canonical places and routes
+agent -> valkey
+api -> valkey
+api -> postgres
+api -> routing
+api -> media
