@@ -7,6 +7,8 @@ Use it for city walks, sightseeing and outdoor trips. The current routing implem
 builds **walking routes** with OpenRouteService `foot-hiking`; driving, cycling and
 public transport are not implemented. Interests are descriptive, not routing constraints.
 
+![trego. showing a walking route through Helsinki with chat, map markers, and landmark photos](docs/assets/helsinki-route.jpg)
+
 ## Current capabilities
 
 - Research requested places through Exa and resolve their identities with Nominatim/OSM.
@@ -30,49 +32,17 @@ place data, including routes created through chat.
 
 The two entry points converge on the same route creation API:
 
-```mermaid
-sequenceDiagram
-    participant Web as Web app
-    participant Agent as FastAPI agent
-    participant API as Spring Boot API
-    participant Cache as Valkey
-    participant ORS as OpenRouteService
-    participant DB as PostgreSQL
-
-    alt Plan in chat
-        Web->>Agent: POST /api/chat
-        Agent->>Agent: Resolve requested places and visit order
-        Agent->>API: Persist canonical places
-        Agent->>API: POST /api/routes
-    else Plan on the map or rebuild
-        opt Open a saved route for editing
-            Web->>API: GET /api/routes/{id}/editing-context
-        end
-        Web->>API: POST /api/routes
-    end
-    API->>DB: Resolve and validate place references
-    API->>Cache: Look up the route geometry
-    opt Cache miss
-        API->>ORS: Calculate a foot-hiking route
-        ORS-->>API: Geometry and metrics
-        API->>Cache: Cache the routing result
-    end
-    API->>DB: Save the new route snapshot
-    alt Chat request
-        API-->>Agent: 201 with the saved route
-        Agent-->>Web: Chat response with route ID
-    else Map or editor request
-        API-->>Web: 201 with the saved route
-    end
-```
+![Sequence diagram for creating and rebuilding walking routes](docs/architecture/route-flow.svg)
 
 The sequence shows a successful route build. Opening the editor reads the
 original inputs. Rebuilding saves a new route and keeps the original available.
 
-The [D2 source](docs/architecture/system.d2) can be rendered with D2 v0.9.0:
+The diagrams can be regenerated from the [D2 source](docs/architecture/system.d2)
+and [Mermaid source](docs/architecture/route-flow.mmd):
 
 ```sh
-d2 --layout=elk --theme=0 --dark-theme=200 docs/architecture/system.d2 docs/architecture/system.svg
+d2 --layout=elk --theme=200 docs/architecture/system.d2 docs/architecture/system.svg
+mmdc -b '#000000' -i docs/architecture/route-flow.mmd -o docs/architecture/route-flow.svg
 ```
 
 ## Team and repository layout
