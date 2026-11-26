@@ -1,0 +1,79 @@
+direction: down
+
+vars: {
+  d2-config: {
+    theme-overrides: {
+      N1: "#f1f5f9"
+      N2: "#e2e8f0"
+      N3: "#cbd5e1"
+      N4: "#94a3b8"
+      N5: "#475569"
+      N6: "#1e293b"
+      N7: "#111827"
+      B1: "#94a3b8"
+      B2: "#94a3b8"
+      B3: "#64748b"
+      B4: "#475569"
+      B5: "#1e293b"
+      B6: "#1e293b"
+    }
+  }
+}
+
+classes: {
+  client: {
+    style: {
+      fill: "#193451"
+      stroke: "#7cbcf8"
+      font-color: "#f1f5f9"
+      border-radius: 14
+    }
+  }
+  service: {
+    style: {
+      fill: "#183c3d"
+      stroke: "#68cfbf"
+      font-color: "#f1f5f9"
+      border-radius: 14
+    }
+  }
+  store: {
+    shape: cylinder
+    style: {
+      fill: "#3a3023"
+      stroke: "#e6bc79"
+      font-color: "#f1f5f9"
+    }
+  }
+  provider: {
+    style: {
+      fill: "#1e293b"
+      stroke: "#8095b3"
+      font-color: "#f1f5f9"
+      border-radius: 12
+    }
+  }
+}
+
+browser: "Web app\nReact · Vite · MapLibre" {class: client}
+agent: "Chat agent\nPython · FastAPI" {class: service}
+api: "Route and place API\nJava · Spring Boot" {class: service}
+
+postgres: "PostgreSQL + PostGIS\nPlaces and saved routes" {class: store}
+valkey: "Valkey\nSessions, caches and rate limits" {class: store}
+
+tiles: "Map tiles\nOpenFreeMap" {class: provider}
+discovery: "Place discovery\nExa · LLM · Nominatim" {class: provider}
+routing: "Walking routes\nOpenRouteService" {class: provider}
+media: "Photo discovery\nNominatim · Wikidata\nWikimedia Commons" {class: provider}
+
+browser -> tiles
+browser -> agent: Chat
+browser -> api: Map planning, edits and media
+agent -> discovery
+agent -> api: Canonical places and saved routes
+agent -> valkey
+api -> valkey
+api -> postgres
+api -> routing: Cache miss
+api -> media: Optional
